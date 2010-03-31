@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2010.03.31 00:25:10.546.pas,C:\Documents and Settings\Igroman\Мои документы\RAD Studio\Projects\Unit1.pas=C:\sandbox\OpenCL_Info\Main.pas</Transaction>
+    <Transaction>2010.03.31 00:25:10.546.dfm,C:\Documents and Settings\Igroman\Мои документы\RAD Studio\Projects\Unit1.dfm=C:\sandbox\OpenCL_Info\Main.dfm</Transaction>
+    <Transaction>2010.03.31 00:25:16.578.dproj,C:\Documents and Settings\Igroman\Мои документы\RAD Studio\Projects\Project2.dproj=C:\sandbox\OpenCL_Info\OpenCL_Info.dproj</Transaction>
+    <Transaction>2010.03.31 01:37:39.062.dproj,C:\sandbox\OpenCL_Info\OpenCL_Info.dproj=C:\sandbox\OpenCL_Info\OpenCL_Info.dproj</Transaction>
+  </Transactions>
+</BorlandProject>
