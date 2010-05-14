@@ -147,11 +147,20 @@ begin
   end;
 
   SetLength(Data, N);
-  mem[0] := clCreateBuffer(Context, CL_MEM_WRITE_ONLY, N * SizeOf(tcl_float), nil, nil);
-  clSetKernelArg(Kernel, 0, SizeOf(pcl_mem), @mem);
-  clSetKernelArg(Kernel, 1, SizeOf(tcl_int), @n);
-  clEnqueueNDRangeKernel(CommandQueue, Kernel, 1, nil, @n, @n, 0, nil, nil);
-  clEnqueueReadBuffer(CommandQueue, mem[0], CL_TRUE, 0, N * SizeOf(tcl_float), Data, 0, nil, nil);
+  mem[0] := clCreateBuffer(Context, CL_MEM_WRITE_ONLY, N * SizeOf(TCL_Float), nil, @Status);
+  if Status <> CL_SUCCESS then
+   Writeln(GetString(Status));
+  Status := clSetKernelArg(Kernel, 0, SizeOf(pcl_mem), @mem[0]);
+  if Status <> CL_SUCCESS then
+   Writeln(GetString(Status));
+  Status := clSetKernelArg(Kernel, 1, SizeOf(pcl_int), @N);
+  if Status <> CL_SUCCESS then
+   Writeln(GetString(Status));
+//  clEnqueueWriteBuffer(CommandQueue, mem[0], CL_FALSE, 0, SizeOf(pcl_float), pointer, 0, nil, nil);
+  clEnqueueNDRangeKernel(CommandQueue, Kernel, 1, nil, @N, @N, 0, nil, nil);
+  clEnqueueReadBuffer(CommandQueue, mem[0], CL_TRUE, 0, N * SizeOf(tcl_float), @Data[0], 0, nil, nil);
+  for i := 0 to N - 1 do
+   Write(FloatToStr(data[i]) + ' ');
 
   FreeMemory(Current_device);
 
