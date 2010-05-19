@@ -12,4 +12,5 @@ __kernel void Simple(__global float* a, int iNumElements)
 	}
 //	a[iGID] = iGID;//sq(iGID);
 	a[iGID] = sq(iGID);
-}
+
+}//end kernel

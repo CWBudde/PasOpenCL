@@ -206,9 +206,6 @@ begin
   FStatus := clGetDeviceInfo(PCL_device_id(Fcurrent_indevice), CL_DEVICE_LOCAL_MEM_SIZE, SizeOf(FuLong), @FuLong, nil);
   sTreeView1.Items.AddChild(node, 'LocalMemorySize: ' + IntToStr(Round(FuLong / 1024)) + ' KByte');
 
-  FStatus := clGetDeviceInfo(PCL_device_id(Fcurrent_indevice), CL_DEVICE_MAX_COMPUTE_UNITS, SizeOf(FuLong), @FuLong, nil);
-  sTreeView1.Items.AddChild(node, 'LocalMemorySize: ' + IntToStr(Round(FuLong / 1024)) + ' KByte');
-
   FStatus := clGetDeviceInfo(PCL_device_id(Fcurrent_indevice), CL_DEVICE_QUEUE_PROPERTIES, SizeOf(FuLong), @FuLong, nil);
   if (FuLong and CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE) <> 0 then
    sTreeView1.Items.AddChild(node, 'QueueProperties: CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE');
@@ -299,7 +296,9 @@ begin
   l := MAX_PATH;
   GetSystemDirectoryA(@SysDir[0], l);
 
+{$IFNDEF VER150}
 {$REGION 'GetVendor'}
+{$ENDIF}
   FillChar(pfd, SizeOf(pfd), 0);
   with pfd do begin
     nSize := SizeOf(pfd);
@@ -327,7 +326,9 @@ begin
   wglMakeCurrent(0, 0);
   wglDeleteContext(FRC);
   ReleaseDC(Form1.Handle, FDC);
+{$IFNDEF VER150}
 {$ENDREGION}
+{$ENDIF}
 
   if FVendor = nvd then
    FOCL := NV_DRIVER

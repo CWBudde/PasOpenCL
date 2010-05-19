@@ -21,16 +21,12 @@ const
 var
   SysDir: array [0..(MAX_PATH - 1)] of AnsiChar;
   l: Cardinal;
-  FVendor: AnsiString;
-  FRC: HGLRC;
-  FDC: HDC;
-  pfd: TPixelFormatDescriptor;
 begin
   Result := '';
   l := MAX_PATH;
   GetSystemDirectoryA(@SysDir[0], l);
 
-  if FileExists(AnsiString(SysDir) + '\' + NV_DRIVER) then
+  if FileExists(String(String(SysDir) + '\' + NV_DRIVER)) then
    Result := NV_DRIVER
   else
    Result := ATI_AMD_DRIVER;
@@ -72,6 +68,9 @@ begin
 //    HostVector1[i]:=InitialData1[i mod 20];
 //    HostVector2[i]:=InitialData2[i mod 20];
 //  end;
+  SrcA := nil;
+  SrcB := nil;
+  Dst := nil;
   if not InitOpenCL(GetDriver) then Exit;
 
   Status := clGetPlatformIDs(1, @Platform_, nil);
@@ -81,7 +80,7 @@ begin
   end;
 
   CPS[1] := pcl_context_properties(Platform_);
-  Context:=clCreateContextFromType(@CPS, CL_DEVICE_TYPE_ALL, nil, nil, @Status);
+  Context:=clCreateContextFromType(@CPS, CL_DEVICE_TYPE_GPU, nil, nil, @Status);
   if Status <> CL_SUCCESS then begin
     Writeln(GetString(Status));
     Exit;
@@ -106,7 +105,7 @@ begin
     Exit;
   end;
 
-  CommandQueue :=clCreateCommandQueue(Context, PCL_device_id(Current_indevice), 0, @Status);
+  CommandQueue := clCreateCommandQueue(Context, PCL_device_id(Current_indevice), 0, @Status);
   if Status <> CL_SUCCESS then begin
     Writeln(GetString(Status));
     Exit;
@@ -161,8 +160,10 @@ begin
   clEnqueueReadBuffer(CommandQueue, mem[0], CL_TRUE, 0, N * SizeOf(tcl_float), @Data[0], 0, nil, nil);
   for i := 0 to N - 1 do
    Write(FloatToStr(data[i]) + ' ');
+  Writeln;
+  Writeln;
 
-  FreeMemory(Current_device);
+//  FreeMemory(Current_device);
 
   clReleaseMemObject(mem[0]);
   clReleaseKernel(Kernel);

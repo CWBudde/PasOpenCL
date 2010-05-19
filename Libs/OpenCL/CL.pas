@@ -36,6 +36,12 @@
 (*      e-mail          : muxamed13@ukr.net     *)
 (*      ICQ             : 446-769-253           *)
 (*                                              *)
+(*      Fixed by        : Dmitry Belkevich      *)
+(*      Site            : www.makhaon.com       *)
+(*      e-mail          : dmitry@makhaon.com    *)
+(*      ICQ             : 207-381-695           *)
+(*                    (c) 2009                  *)
+(*                                              *)
 (*      updated by      : Alexander Kiselev     *)
 (*                          (Igroman)           *)
 (*      Site : http://Igroman14.livejournal.com *)
@@ -45,15 +51,11 @@
 (*                                              *)
 (***********Copyright (c) niello 2008-2010*******)
 
-//OpenCL 1.0 for Delphi 7-2010
-//Fixed By Dmitry Belkevich
-//Site www.makhaon.com
-//E-mail dmitry@makhaon.com
-//(c) 2009
-//Beta release 1.0
+{
+Comments:
+  19.05.2010: ($IFNDEF VER170) include to block $REGION/$ENDREGION.
+}
 
-//OpenCL 1.0 for Delphi 7-2010
-//Updated by
 unit CL;
 
 interface
@@ -76,14 +78,14 @@ extern "C" {
 
 {$INCLUDE 'OpenCL.inc'}
 
-
-
 {$IFDEF DEFINE_8087CW_NOT_IMPLEMENTED}
 var
   Default8087CW: Word = $1332;
 {$ENDIF}
 
+{$IFNDEF VER170} //
 {$REGION 'types'}
+{$ENDIF}
 type
   TSize_t = Longword;
   PSize_t = ^TSize_t;
@@ -234,10 +236,14 @@ type
     Image_channel_data_type: TCl_channel_type;
   end;
   PCL_image_format = ^TCL_image_format;
+{$IFNDEF VER170}
 {$ENDREGION}
+//types
+{$ENDIF}
 
-//******************************************************************************/
+{$IFNDEF VER170}
 {$REGION 'const'}
+{$ENDIF}
 const
   // Error Codes
   CL_SUCCESS = 0;
@@ -550,11 +556,15 @@ const
   CL_PROFILING_COMMAND_SUBMIT = $1281;
   CL_PROFILING_COMMAND_START = $1282;
   CL_PROFILING_COMMAND_END = $1283;
+{$IFNDEF VER170}
 {$ENDREGION}
+//const
+{$ENDIF}
 
-//********************************************************************************************************/
 
+{$IFNDEF VER170}
 {$REGION 'Types proceduress'}
+{$ENDIF}
 type
 // Platform API
 //extern CL_API_ENTRY cl_int CL_API_CALL
@@ -1021,9 +1031,13 @@ type
 //#endif
 
 //#endif  // __OPENCL_CL_H
+{$IFNDEF VER170}
 {$ENDREGION}
+{$ENDIF}
 
+{$IFNDEF VER170}
 {$REGION 'Var'}
+{$ENDIF}
 var
 //Platform API
   clGetPlatformIDs:   TclGetPlatformIDs;
@@ -1121,10 +1135,13 @@ var
 
 //Extension function access
   clGetExtensionFunctionAddress:  TclGetExtensionFunctionAddress;
+{$IFNDEF VER170}
 {$ENDREGION}
+//var
+{$ENDIF}
 
 function oclGetProcAddress(ProcName: PAnsiChar; LibHandle: Pointer = nil): Pointer;
-function InitOpenCL(LibName: String): Boolean;
+function InitOpenCL(LibName: AnsiString): Boolean;
 function GetString(const Status: TCL_int): AnsiString;
 
 var
@@ -1132,9 +1149,9 @@ var
 
 implementation
 
-function oclLoadLibrary(Name: PChar): Pointer;
+function oclLoadLibrary(Name: PAnsiChar): Pointer;
 begin
-  Result := Pointer(LoadLibrary(Name));
+  Result := Pointer(LoadLibraryA(Name));
 end;
 
 function oclFreeLibrary(LibHandle: Pointer): Boolean;
@@ -1156,8 +1173,10 @@ begin
    Exit;
 end;
 
+{$IFNDEF VER170}
 {$REGION 'InitOpenCL'}
-function InitOpenCL(LibName: String): Boolean;
+{$ENDIF}
+function InitOpenCL(LibName: AnsiString): Boolean;
 begin
   Result := False;
 
@@ -1166,7 +1185,7 @@ begin
     oclFreeLibrary(OCL_LibHandle);
 
   // load library
-  OCL_LibHandle := oclLoadLibrary(PChar(LibName));
+  OCL_LibHandle := oclLoadLibrary(PAnsiChar(LibName));
 
   // load GL functions
   if (OCL_LibHandle <> nil) then begin
@@ -1266,9 +1285,14 @@ begin
       Result := True;
   end;
 end;
+{$IFNDEF VER170}
 {$ENDREGION}
+//InitOpenCL
+{$ENDIF}
 
+{$IFNDEF VER170}
 {$REGION 'GetString'}
+{$ENDIF}
 function GetString(const Status: TCL_int): AnsiString;
 begin
   Result := '';
@@ -1323,7 +1347,10 @@ begin
     CL_INVALID_GLOBAL_WORK_SIZE: Result := 'invalid global work size';
   end;
 end;
+{$IFNDEF VER170}
 {$ENDREGION}
+//GetString
+{$ENDIF}
 
 initialization
 {$IFDEF DEFINE_8087CW_NOT_IMPLEMENTED}

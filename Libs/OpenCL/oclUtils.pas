@@ -62,7 +62,7 @@ procedure oclPrintDevName(var device: PCL_device_id);//tested +fixed = complete
 procedure oclPrintDevInfo(var device: Pcl_device_id);//tested +fixed = complete
 function oclGetFirstDev(cxGPUContext: PCL_context): PPCL_device_id;//tested = complete
 function oclGetMaxFlopsDev(cxGPUContext: Pcl_context): PPcl_device_id;//tested = complete
-function oclLoadProgSource(const cFilename: AnsiString;
+function oclLoadProgSource(const cFilename: string;
                            const cPreamble: PAnsiChar;
                            szFinalLength: Psize_t): PAnsiChar;//tested +fixed = complete
 (*
@@ -609,7 +609,7 @@ begin
     //stdDevString:=stdDevString+(device_string);
     szOldPos := 1;
 
-    szSpacePos := Pos(' ', AnsiString(device_string));//stdDevString);
+    szSpacePos := Pos(' ', string(device_string));//stdDevString);
     //szSpacePos := stdDevString.find(' ', szOldPos); // extensions string is space delimited
 
     while (szSpacePos <> Cardinal(Length(AnsiString(device_string)))) and
@@ -807,7 +807,7 @@ begin
 	Result := max_flops_device;
 end;
 
-function oclLoadProgSource(const cFilename: AnsiString;
+function oclLoadProgSource(const cFilename: string;
                             const cPreamble: PAnsiChar;
                              szFinalLength: Psize_t): PAnsiChar;
 var
@@ -846,7 +846,7 @@ begin
   // allocate a buffer for the source code string and read it in
   //cSourceString := (char *)malloc(szSourceLength + szPreambleLength + 1);
 
-  cSourceString := '' + cPreamble;
+  cSourceString := '' + AnsiString(cPreamble);
   //memcpy(cSourceString, cPreamble, szPreambleLength);
 
   (*
