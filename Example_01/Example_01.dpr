@@ -156,7 +156,7 @@ begin
   if Status <> CL_SUCCESS then
    Writeln(GetString(Status));
 //  clEnqueueWriteBuffer(CommandQueue, mem[0], CL_FALSE, 0, SizeOf(pcl_float), pointer, 0, nil, nil);
-  clEnqueueNDRangeKernel(CommandQueue, Kernel, 1, nil, @N, @N, 0, nil, nil);
+  clEnqueueNDRangeKernel(CommandQueue, Kernel, 1, nil, @N, nil, 0, nil, nil);
   clEnqueueReadBuffer(CommandQueue, mem[0], CL_TRUE, 0, N * SizeOf(tcl_float), @Data[0], 0, nil, nil);
   for i := 0 to N - 1 do
    Write(FloatToStr(data[i]) + ' ');
