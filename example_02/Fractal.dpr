@@ -47,7 +47,7 @@ var
   BFH: TBitmapFileHeader;
   BIH: TBitmapInfoHeader;
 begin
-  Assign(F,FileName);
+  Assign(F, FileName);
   Rewrite(F,1);
   ZeroMemory(@BFH,SizeOf(BFH));
   ZeroMemory(@BIH,SizeOf(BIH));
