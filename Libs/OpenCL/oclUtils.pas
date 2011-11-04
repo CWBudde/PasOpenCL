@@ -32,6 +32,10 @@
 (*********Copyright (c) niello 2008-2010*****)
 unit oclUtils;
 
+{$IFDEF FPC}
+  {$MODE Delphi}
+{$ENDIF}
+
 interface
 
 
@@ -39,7 +43,7 @@ interface
 uses
   CL,CL_platform,clExt;
 
-{$INCLUDE 'OpenCL.inc'}
+{$INCLUDE OpenCL.inc}
 
 const
   PGMHeaderSize: TCL_int = $40;

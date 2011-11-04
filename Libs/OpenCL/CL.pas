@@ -58,25 +58,14 @@ Comments:
 
 unit CL;
 
+{$IFDEF FPC}
+  {$MODE Delphi}
+{$ENDIF}
+
 interface
   uses Windows, cl_platform;
 
-{
-#ifndef __OPENCL_CL_H
-#define __OPENCL_CL_H
-
-#ifdef __APPLE__
-#include <OpenCL/cl_platform.h>
-#else
-#include <CL/cl_platform.h>
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-}
-
-{$INCLUDE 'OpenCL.inc'}
+{$INCLUDE OpenCL.inc}
 
 {$IFDEF DEFINE_8087CW_NOT_IMPLEMENTED}
 var
@@ -1190,57 +1179,57 @@ begin
   // load GL functions
   if (OCL_LibHandle <> nil) then begin
     //Platform API
-      clGetPlatformIDs :=   oclGetProcAddress('clGetPlatformIDs', OCL_LibHandle);
-      clGetPlatformInfo :=  oclGetProcAddress('clGetPlatformInfo', OCL_LibHandle);
+      clGetPlatformIDs :=   TclGetPlatformIDs(oclGetProcAddress('clGetPlatformIDs', OCL_LibHandle));
+      clGetPlatformInfo :=  TclGetPlatformInfo(oclGetProcAddress('clGetPlatformInfo', OCL_LibHandle));
 
     //Device APIs
-      clGetDeviceIDs :=     oclGetProcAddress('clGetDeviceIDs', OCL_LibHandle);
-      clGetDeviceInfo :=    oclGetProcAddress('clGetDeviceInfo', OCL_LibHandle);
+      clGetDeviceIDs :=     TclGetDeviceIDs(oclGetProcAddress('clGetDeviceIDs', OCL_LibHandle));
+      clGetDeviceInfo :=    TclGetDeviceInfo(oclGetProcAddress('clGetDeviceInfo', OCL_LibHandle));
 
     //Context APIs
-      clCreateContext :=          oclGetProcAddress('clCreateContext', OCL_LibHandle);
-      clCreateContextFromType :=  oclGetProcAddress('clCreateContextFromType', OCL_LibHandle);
-      clRetainContext :=          oclGetProcAddress('clRetainContext', OCL_LibHandle);
-      clReleaseContext :=         oclGetProcAddress('clReleaseContext', OCL_LibHandle);
-      clGetContextInfo :=         oclGetProcAddress('clGetContextInfo', OCL_LibHandle);
+      clCreateContext :=          TclCreateContext(oclGetProcAddress('clCreateContext', OCL_LibHandle));
+      clCreateContextFromType :=  TclCreateContextFromType(oclGetProcAddress('clCreateContextFromType', OCL_LibHandle));
+      clRetainContext :=          TclRetainContext(oclGetProcAddress('clRetainContext', OCL_LibHandle));
+      clReleaseContext :=         TclReleaseContext(oclGetProcAddress('clReleaseContext', OCL_LibHandle));
+      clGetContextInfo :=         TclGetContextInfo(oclGetProcAddress('clGetContextInfo', OCL_LibHandle));
 
     //Command Queue APIs
-      clCreateCommandQueue :=       oclGetProcAddress('clCreateCommandQueue', OCL_LibHandle);
-      clRetainCommandQueue :=       oclGetProcAddress('clRetainCommandQueue', OCL_LibHandle);
-      clReleaseCommandQueue :=      oclGetProcAddress('clReleaseCommandQueue', OCL_LibHandle);
-      clGetCommandQueueInfo :=      oclGetProcAddress('clGetCommandQueueInfo', OCL_LibHandle);
-      clSetCommandQueueProperty :=  oclGetProcAddress('clSetCommandQueueProperty', OCL_LibHandle);
+      clCreateCommandQueue :=       TclCreateCommandQueue(oclGetProcAddress('clCreateCommandQueue', OCL_LibHandle));
+      clRetainCommandQueue :=       TclRetainCommandQueue(oclGetProcAddress('clRetainCommandQueue', OCL_LibHandle));
+      clReleaseCommandQueue :=      TclReleaseCommandQueue(oclGetProcAddress('clReleaseCommandQueue', OCL_LibHandle));
+      clGetCommandQueueInfo :=      TclGetCommandQueueInfo(oclGetProcAddress('clGetCommandQueueInfo', OCL_LibHandle));
+      clSetCommandQueueProperty :=  TclSetCommandQueueProperty(oclGetProcAddress('clSetCommandQueueProperty', OCL_LibHandle));
 
     //Memory Object APIs
-      clCreateBuffer :=             oclGetProcAddress('clCreateBuffer', OCL_LibHandle);
-      clCreateImage2D :=            oclGetProcAddress('clCreateImage2D', OCL_LibHandle);
-      clCreateImage3D :=            oclGetProcAddress('clCreateImage3D', OCL_LibHandle);
-      clRetainMemObject :=          oclGetProcAddress('clRetainMemObject', OCL_LibHandle);
-      clReleaseMemObject :=         oclGetProcAddress('clReleaseMemObject', OCL_LibHandle);
-      clGetSupportedImageFormats := oclGetProcAddress('clGetSupportedImageFormats', OCL_LibHandle);
-      clGetMemObjectInfo :=         oclGetProcAddress('clGetMemObjectInfo', OCL_LibHandle);
-      clGetImageInfo :=             oclGetProcAddress('clGetImageInfo', OCL_LibHandle);
+      clCreateBuffer :=             TclCreateBuffer(oclGetProcAddress('clCreateBuffer', OCL_LibHandle));
+      clCreateImage2D :=            TclCreateImage2D(oclGetProcAddress('clCreateImage2D', OCL_LibHandle));
+      clCreateImage3D :=            TclCreateImage3D(oclGetProcAddress('clCreateImage3D', OCL_LibHandle));
+      clRetainMemObject :=          TclRetainMemObject(oclGetProcAddress('clRetainMemObject', OCL_LibHandle));
+      clReleaseMemObject :=         TclReleaseMemObject(oclGetProcAddress('clReleaseMemObject', OCL_LibHandle));
+      clGetSupportedImageFormats := TclGetSupportedImageFormats(oclGetProcAddress('clGetSupportedImageFormats', OCL_LibHandle));
+      clGetMemObjectInfo :=         TclGetMemObjectInfo(oclGetProcAddress('clGetMemObjectInfo', OCL_LibHandle));
+      clGetImageInfo :=             TclGetImageInfo(oclGetProcAddress('clGetImageInfo', OCL_LibHandle));
 
     //Sampler APIs
-      clCreateSampler :=            oclGetProcAddress('clCreateSampler', OCL_LibHandle);
-      clRetainSampler :=            oclGetProcAddress('clRetainSampler', OCL_LibHandle);
-      clReleaseSampler :=           oclGetProcAddress('clReleaseSampler', OCL_LibHandle);
-      clGetSamplerInfo :=           oclGetProcAddress('clGetSamplerInfo', OCL_LibHandle);
+      clCreateSampler :=            TclCreateSampler(oclGetProcAddress('clCreateSampler', OCL_LibHandle));
+      clRetainSampler :=            TclRetainSampler(oclGetProcAddress('clRetainSampler', OCL_LibHandle));
+      clReleaseSampler :=           TclReleaseSampler(oclGetProcAddress('clReleaseSampler', OCL_LibHandle));
+      clGetSamplerInfo :=           TclGetSamplerInfo(oclGetProcAddress('clGetSamplerInfo', OCL_LibHandle));
 
     //Program Object APIs
-      clCreateProgramWithSource :=  oclGetProcAddress('clCreateProgramWithSource', OCL_LibHandle);
-      clCreateProgramWithBinary :=  oclGetProcAddress('clCreateProgramWithBinary', OCL_LibHandle);
-      clRetainProgram :=            oclGetProcAddress('clRetainProgram', OCL_LibHandle);
-      clReleaseProgram :=           oclGetProcAddress('clReleaseProgram', OCL_LibHandle);
+      clCreateProgramWithSource :=  TclCreateProgramWithSource(oclGetProcAddress('clCreateProgramWithSource', OCL_LibHandle));
+      clCreateProgramWithBinary :=  TclCreateProgramWithBinary(oclGetProcAddress('clCreateProgramWithBinary', OCL_LibHandle));
+      clRetainProgram :=            TclRetainProgram(oclGetProcAddress('clRetainProgram', OCL_LibHandle));
+      clReleaseProgram :=           TclReleaseProgram(oclGetProcAddress('clReleaseProgram', OCL_LibHandle));
 
-      clBuildProgram :=         oclGetProcAddress('clBuildProgram', OCL_LibHandle);
-      clUnloadCompiler :=       oclGetProcAddress('clUnloadCompiler', OCL_LibHandle);
-      clGetProgramInfo :=       oclGetProcAddress('clGetProgramInfo', OCL_LibHandle);
-      clGetProgramBuildInfo :=  oclGetProcAddress('clGetProgramBuildInfo', OCL_LibHandle);
+      clBuildProgram :=         TclBuildProgram(oclGetProcAddress('clBuildProgram', OCL_LibHandle));
+      clUnloadCompiler :=       TclUnloadCompiler(oclGetProcAddress('clUnloadCompiler', OCL_LibHandle));
+      clGetProgramInfo :=       TclGetProgramInfo(oclGetProcAddress('clGetProgramInfo', OCL_LibHandle));
+      clGetProgramBuildInfo :=  TclGetProgramBuildInfo(oclGetProcAddress('clGetProgramBuildInfo', OCL_LibHandle));
 
     //Kernel Object APIs
-      clCreateKernel :=             oclGetProcAddress('clCreateKernel', OCL_LibHandle);
-      clCreateKernelsInProgram :=   oclGetProcAddress('clCreateKernelsInProgram', OCL_LibHandle);
+      clCreateKernel :=             TclCreateKernel(oclGetProcAddress('clCreateKernel', OCL_LibHandle));
+      clCreateKernelsInProgram :=   TclCreateKernelsInProgram(oclGetProcAddress('clCreateKernelsInProgram', OCL_LibHandle));
 
       clRetainKernel :=   oclGetProcAddress('clRetainKernel', OCL_LibHandle);
       clReleaseKernel :=  oclGetProcAddress('clReleaseKernel', OCL_LibHandle);

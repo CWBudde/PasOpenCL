@@ -1,6 +1,10 @@
 
 unit cl_platform;
 
+{$IFDEF FPC}
+  {$MODE Delphi}
+{$ENDIF}
+
 interface
 
 (* ============================================================
@@ -119,49 +123,10 @@ jurisdiction and venue of these courts.
 //Beta release 1.0
 
 (*
-#ifndef CL_PLATFORM_H_
-#define CL_PLATFORM_H_
-
-#if !defined(_WIN32)
-# include <stdint.h>
-#endif /* !_WIN32 */
-#include <stddef.h>
-#include <float.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
-
-#ifdef _MSC_VER
-# define __CL_IMPORT __declspec(dllimport)
-# define __CL_EXPORT
-# define __CL_CALL   __stdcall
-# define __CL_SUFFIX
-#else
-# define __CL_IMPORT
-# define __CL_EXPORT
-# define __CL_CALL
-# define __CL_SUFFIX
-#endif
-
-#define CL_API_CALL   __CL_CALL
-#define CL_API_SUFFIX __CL_SUFFIX
-#define CL_API_SUFFIX__VERSION_1_0 CL_API_SUFFIX
-#define CL_EXTENSION_WEAK_LINK
-
-#ifdef OPENCL_EXPORTS
-# define CL_API_ENTRY __CL_EXPORT
-#else /* !OPENCL_EXPORTS */
-# define CL_API_ENTRY __CL_IMPORT
-#endif /* !OPENCL_EXPORTS */
- *)
-//#if defined(_WIN32)
-
-(*
 Delphi 6 and down don't support UInt64;
 *)
 
-{$INCLUDE 'OpenCL.inc'}
+{$INCLUDE OpenCL.inc}
 
 type
         PCL_Char    = ^TCL_Char;

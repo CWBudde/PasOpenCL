@@ -23,15 +23,21 @@
 (************************delphi-opencl2010-2011**************************)
 program Filter;
 
+{$IFDEF FPC}
+  {$MODE Delphi}
+{$ENDIF}
+
 {$APPTYPE CONSOLE}
 
 uses
+  cl_platform, oclUtils,
   CL,
-  CL_platform,
   SysUtils,
   Graphics,
-  ShellAPI,//ShellExecute
-  oclutils,//oclGetFirstDevice...
+  ShellAPI,//oclGetFirstDevice...
+  {$IFDEF FPC}
+  Interfaces,
+  {$ENDIF}
   Windows;
 
 var

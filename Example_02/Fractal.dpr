@@ -23,13 +23,20 @@
 (************************delphi-opencl2010-2011**************************)
 program Fractal;
 
+{$IFDEF FPC}
+  {$MODE Delphi}
+{$ENDIF}
+
 {$APPTYPE CONSOLE}
 
 uses
+{$IFNDEF FPC}
+  CL_platform, oclutils,
+{$ELSE}
+  cl_platform, oclUtils,
+{$ENDIF}
   CL,
-  CL_platform,
-  ShellAPI,//ShellExecute
-  oclutils,//oclGetFirstDevice...
+  ShellAPI,//oclGetFirstDevice...
   Windows;
 
 const

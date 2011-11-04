@@ -1,14 +1,19 @@
 program Example_01;
 
+{$IFDEF FPC}
+  {$INCLUDEPATH ..\Libs\OpenCL;..Libs\}
+  {$MODE Delphi}
+{$ENDIF}
+
 {$APPTYPE CONSOLE}
 
 uses
   Windows,
   SysUtils,
-  dglOpenGL,
-  CL,
-  cl_platform,
-  oclUtils;
+  dglOpenGL in '..\Libs\dglOpenGL.pas',
+  CL in '..\Libs\OpenCL\CL.pas',
+  cl_platform in '..\Libs\OpenCL\cl_platform.pas',
+  oclUtils in '..\Libs\OpenCL\oclUtils.pas';
 
 {$REGION 'GetDriver: AnsiString'}
 function GetDriver: AnsiString;
