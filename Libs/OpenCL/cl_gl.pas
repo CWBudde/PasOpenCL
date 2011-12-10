@@ -1,5 +1,5 @@
-(**********************************************************************************
- * Copyright (c) 2008-2009 The Khronos Group Inc.
+(******************************************************************************
+ * Copyright (c) 2011 The Khronos Group Inc.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and/or associated documentation files (the
@@ -19,18 +19,17 @@
  * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
- **********************************************************************************)
-
+ ******************************************************************************)
 (************************************************)
 (*                                              *)
-(*     OpenCL1.0 and Delphi and Windows         *)
+(*     OpenCL1.2 and Delphi and Windows         *)
 (*                                              *)
-(*      created by      : Maksim Tymkovich      *)
+(*      created by      : Maksym Tymkovych      *)
 (*                           (niello)           *)
 (*                                              *)
-(*      headers versions: 0.04                  *)
+(*      headers versions: 0.07                  *)
 (*      file name       : CL.pas                *)
-(*      last modify     : 31.03.10              *)
+(*      last modify     : 10.12.11              *)
 (*      license         : BSD                   *)
 (*                                              *)
 (*      Site            : www.niello.org.ua     *)
@@ -44,9 +43,7 @@
 (*      ICQ             : 207-381-695           *)
 (*                    (c) 2010                  *)
 (*                                              *)
-(***********Copyright (c) niello 2008-2010*******)
-
-(* $Revision: 10424 $ on $Date: 2010-02-24 23:53:49 -0800 (Wed, 24 Feb 2010) $ *)
+(***********Copyright (c) niello 2008-2011*******)
 
 (*
  * cl_gl.h contains Khronos-approved (KHR) OpenCL extensions which have
@@ -57,16 +54,15 @@ unit cl_gl;
 
 interface
 
-
+{$INCLUDE OpenCL.inc}
 
 uses
   OpenGL,
   cl,
   cl_platform;
 
-{$INCLUDE 'OpenCL.inc'}
-
 type
+
   PCL_gl_object_type  = ^TCL_gl_object_type;
   TCL_gl_object_type  = TCL_uint;
   PCL_gl_texture_info = ^TCL_gl_texture_info;
@@ -74,136 +70,210 @@ type
   PCL_gl_platform_info= ^TCL_gl_platform_info;
   TCL_gl_platform_info= TCL_uint;
 
-const
-// cl_gl_object_type
-     CL_GL_OBJECT_BUFFER           =  $2000;
-     CL_GL_OBJECT_TEXTURE2D        =  $2001;
-     CL_GL_OBJECT_TEXTURE3D        =  $2002;
-     CL_GL_OBJECT_RENDERBUFFER     =  $2003;
-
-// cl_gl_texture_info
-     CL_GL_TEXTURE_TARGET          =  $2004;
-     CL_GL_MIPMAP_LEVEL            =  $2005;
-
-// CL_KHR_gl_sharing
-     CL_GL_CONTEXT_KHR             =  $2008;
-     CL_EGL_DISPLAY_KHR            =  $2009;
-     CL_GLX_DISPLAY_KHR            =  $200A;
-     CL_WGL_HDC_KHR                =  $200B;
-     CL_CGL_SHAREGROUP_KHR         =  $200C;
-
-
-type
-  TclCreateFromGLBuffer = function (context: Tcl_context;                  (* context *)
-                                      flags: Tcl_mem_flags;                  (* flags *)
-                                      bufobj:  GLuint;                       (* bufobj *)
-                                      errcode_ret: PInteger                  (* errcode_ret *)
-                                      ): TCL_mem;{$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};// external OpenCL;
-
-
-  TclCreateFromGLTexture2D = function (context: Tcl_context;               (* context *)
-                                         flags: Tcl_mem_flags;               (* flags *)
-                                         target: GLenum;                     (* target *)
-                                         miplevel: GLint;                    (* miplevel *)
-                                         texture: GLuint;                    (* texture *)
-                                         errcode_ret: Pcl_int                (* errcode_ret *)
-                                         ): TCL_mem;{$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};// external OpenCL;
-
-
-  TclCreateFromGLTexture3D = function (context: Tcl_context;               (* context *)
-                                         flags: Tcl_mem_flags;               (* flags *)
-                                         target: GLenum;                     (* target *)
-                                         miplevel: GLint;                    (* miplevel *)
-                                         texture: GLuint;                    (* texture *)
-                                         errcode_ret: Pcl_int                (* errcode_ret *)
-                                         ): TCL_mem;{$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};// external OpenCL;
-
-
-  TclCreateFromGLRenderbuffer = function (context: Tcl_context;            (* context *)
-                                            flags: Tcl_mem_flags;            (* flags *)
-                                            renderbuffer: GLuint;            (* renderbuffer *)
-                                            errcode_ret: Pcl_int             (* errcode_ret *)
-                                            ): Tcl_mem;{$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};// external OpenCL;
-
-
-  TclGetGLObjectInfo = function (memobj: Tcl_mem;                          (* memobj *)
-                                   gl_object_type: Pcl_gl_object_type;       (* gl_object_type *)
-                                   gl_object_name: PGLuint                   (* gl_object_name *)
-                                   ): TCL_int;{$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};// external OpenCL;
-
-
-  TclGetGLTextureInfo = function (memobj: Tcl_mem;                         (* memobj *)
-                                    param_name: Tcl_gl_texture_info;         (* param_name *)
-                                    param_value_size: Tsize_t;               (* param_value_size *)
-                                    param_value: Pointer;                    (* param_value *)
-                                    param_value_size_ret: Psize_t           (* param_value_size_ret *)
-                                    ): TCL_int;{$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};// external OpenCL;
-
-
-  TclEnqueueAcquireGLObjects = function (command_queue: Tcl_command_queue; (* command_queue *)
-                                           num_objects: Tcl_uint;            (* num_objects *)
-                                           const mem_objects: Pcl_mem;       (* mem_objects *)
-                                           num_events_in_wait_list: Tcl_uint;(* num_events_in_wait_list *)
-                                           const event_wait_list: Pcl_event; (* event_wait_list *)
-                                           event: Pcl_event                  (* event *)
-                                           ): TCL_int;{$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};// external OpenCL;
-
-
-  TclEnqueueReleaseGLObjects = function (command_queue: Tcl_command_queue; (* command_queue *)
-                                           num_objects: Tcl_uint;            (* num_objects *)
-                                           const mem_objects: Pcl_mem;       (* mem_objects *)
-                                           num_events_in_wait_list: Tcl_uint;(* num_events_in_wait_list *)
-                                           const event_wait_list: Pcl_event; (* event_wait_list *)
-                                           event: Pcl_event                  (* event *)
-                                           ): TCL_int;{$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};// external OpenCL;
+  Tcl_GLsync = ^Integer;
 
 const
+  (* cl_gl_object_type *)
+  CL_GL_OBJECT_BUFFER           =  $2000;
+  CL_GL_OBJECT_TEXTURE2D        =  $2001;
+  CL_GL_OBJECT_TEXTURE3D        =  $2002;
+  CL_GL_OBJECT_RENDERBUFFER     =  $2003;
+
+  (* cl_gl_texture_info *)
+  CL_GL_TEXTURE_TARGET          =  $2004;
+  CL_GL_MIPMAP_LEVEL            =  $2005;
+
+  (* Additional Error Codes  *)
+  (*
+    Returned by clCreateContext, clCreateContextFromType, and
+    clGetGLContextInfoKHR when an invalid OpenGL context or share group
+    object handle is specified in <properties>:
+  *)
   CL_INVALID_GL_SHAREGROUP_REFERENCE_KHR  = -1000;
+
+  (* cl_gl_context_info  *)
+  (*
+    Accepted as the <param_name> argument of clGetGLContextInfoKHR:
+  *)
   CL_CURRENT_DEVICE_FOR_GL_CONTEXT_KHR    = $2006;
   CL_DEVICES_FOR_GL_CONTEXT_KHR           = $2007;
 
+  (* Additional cl_context_properties  *)
+  (*
+    Accepted as an attribute name in the 'properties' argument of
+    clCreateContext and clCreateContextFromType:
+  *)
+  CL_GL_CONTEXT_KHR             =  $2008;
+  CL_EGL_DISPLAY_KHR            =  $2009;
+  CL_GLX_DISPLAY_KHR            =  $200A;
+  CL_WGL_HDC_KHR                =  $200B;
+  CL_CGL_SHAREGROUP_KHR         =  $200C;
+
+
+type
+{$IFDEF CL_VERSION_1_0}
+  TclCreateFromGLBuffer = function (
+                                      context: Pcl_context;                     (* context *)
+                                      flags: Tcl_mem_flags;                     (* flags *)
+                                      bufobj:  GLuint;                          (* bufobj *)
+                                      errcode_ret: PInteger                     (* errcode_ret *)
+                                      ): PCL_mem;
+                                      {$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};
+{$ENDIF}
+
+{$IFDEF CL_VERSION_1_0}
+  {$IFDEF CL_USE_DEPRECATED_OPENCL_1_1_APIS}
+    TclCreateFromGLTexture2D = function (
+                                         context: Pcl_context;                  (* context *)
+                                         flags: Tcl_mem_flags;                  (* flags *)
+                                         target: GLenum;                        (* target *)
+                                         miplevel: GLint;                       (* miplevel *)
+                                         texture: GLuint;                       (* texture *)
+                                         errcode_ret: Pcl_int                   (* errcode_ret *)
+                                         ): PCL_mem;
+                                         {$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};
+  {$ENDIF}
+{$ENDIF}
+
+{$IFDEF CL_VERSION_1_0}
+  {$IFDEF CL_USE_DEPRECATED_OPENCL_1_1_APIS}
+    TclCreateFromGLTexture3D = function (
+                                         context: Pcl_context;                  (* context *)
+                                         flags: Tcl_mem_flags;                  (* flags *)
+                                         target: GLenum;                        (* target *)
+                                         miplevel: GLint;                       (* miplevel *)
+                                         texture: GLuint;                       (* texture *)
+                                         errcode_ret: Pcl_int                   (* errcode_ret *)
+                                         ): PCL_mem;
+                                         {$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};
+  {$ENDIF}
+{$ENDIF}
+
+{$IFDEF CL_VERSION_1_2}
+  TclCreateFromGLTexture = function(
+                                         context: Pcl_context;                  (* context *)
+                                         flags: Tcl_mem_flags;                  (* flags *)
+                                         target: GLenum;                        (* target *)
+                                         miplevel: GLint;                       (* miplevel *)
+                                         texture: GLuint;                       (* texture *)
+                                         errcode_ret: Pcl_int                   (* errcode_ret *)
+                                         ): PCL_mem;
+                                         {$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};
+{$ENDIF}
+
+{$IFDEF CL_VERSION_1_0}
+  TclCreateFromGLRenderbuffer = function (
+                                            context: Pcl_context;               (* context *)
+                                            flags: Tcl_mem_flags;               (* flags *)
+                                            renderbuffer: GLuint;               (* renderbuffer *)
+                                            errcode_ret: Pcl_int                (* errcode_ret *)
+                                            ): Pcl_mem;
+                                            {$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};
+{$ENDIF}
+
+{$IFDEF CL_VERSION_1_0}
+  TclGetGLObjectInfo = function (
+                                   memobj: Pcl_mem;                             (* memobj *)
+                                   gl_object_type: Pcl_gl_object_type;          (* gl_object_type *)
+                                   gl_object_name: PGLuint                      (* gl_object_name *)
+                                   ): TCL_int;
+                                   {$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};
+{$ENDIF}
+
+{$IFDEF CL_VERSION_1_0}
+  TclGetGLTextureInfo = function (
+                                    memobj: Pcl_mem;                            (* memobj *)
+                                    param_name: Tcl_gl_texture_info;            (* param_name *)
+                                    param_value_size: Tsize_t;                  (* param_value_size *)
+                                    param_value: Pointer;                       (* param_value *)
+                                    param_value_size_ret: Psize_t               (* param_value_size_ret *)
+                                    ): TCL_int;
+                                    {$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};
+{$ENDIF}
+
+{$IFDEF CL_VERSION_1_0}
+  TclEnqueueAcquireGLObjects = function (
+                                           command_queue: Pcl_command_queue;    (* command_queue *)
+                                           num_objects: Tcl_uint;               (* num_objects *)
+                                           const mem_objects: PPcl_mem;         (* mem_objects *)
+                                           num_events_in_wait_list: Tcl_uint;   (* num_events_in_wait_list *)
+                                           const event_wait_list: PPcl_event;   (* event_wait_list *)
+                                           event: PPcl_event                    (* event *)
+                                           ): TCL_int;
+                                           {$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};
+{$ENDIF}
+
+{$IFDEF CL_VERSION_1_0}
+  TclEnqueueReleaseGLObjects = function (
+                                           command_queue: Pcl_command_queue;    (* command_queue *)
+                                           num_objects: Tcl_uint;               (* num_objects *)
+                                           const mem_objects: PPcl_mem;         (* mem_objects *)
+                                           num_events_in_wait_list: Tcl_uint;   (* num_events_in_wait_list *)
+                                           const event_wait_list: PPcl_event;   (* event_wait_list *)
+                                           event: PPcl_event                    (* event *)
+                                           ): TCL_int;
+                                           {$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};
+{$ENDIF}
 type
      Pcl_gl_context_info = ^Tcl_gl_context_info;
      Tcl_gl_context_info = Tcl_uint;
 
 
-  TclGetGLContextInfoKHR = function (const properties: Pcl_context_properties; (* properties *)
-                                       param_name: Tcl_gl_context_info;          (* param_name *)
-                                       param_value_size: Tsize_t;                (* param_value_size *)
-                                       param_value: Pointer;                     (* param_value *)
-                                       param_value_size_ret : Psize_t            (* param_value_size_ret *)
-                                       ): TCL_int;{$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};// external OpenCL;
-
+{$IFDEF CL_VERSION_1_0}
+  TclGetGLContextInfoKHR = function (
+                                       const properties: Pcl_context_properties;(* properties *)
+                                       param_name: Tcl_gl_context_info;         (* param_name *)
+                                       param_value_size: Tsize_t;               (* param_value_size *)
+                                       param_value: Pointer;                    (* param_value *)
+                                       param_value_size_ret : Psize_t           (* param_value_size_ret *)
+                                       ): TCL_int;
+                                       {$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};
+{$ENDIF}
 var
-  clCreateFromGLBuffer:     TclCreateFromGLBuffer;
-  clCreateFromGLTexture2D:  TclCreateFromGLTexture2D;
-  clCreateFromGLTexture3D:  TclCreateFromGLTexture3D;
+{$IFDEF CL_VERSION_1_0}
+  clCreateFromGLBuffer:       TclCreateFromGLBuffer;
+  {$IFDEF CL_USE_DEPRECATED_OPENCL_1_1_APIS}
+    clCreateFromGLTexture2D:    TclCreateFromGLTexture2D;
+    clCreateFromGLTexture3D:    TclCreateFromGLTexture3D;
+  {$ENDIF}
   clCreateFromGLRenderbuffer: TclCreateFromGLRenderbuffer;
-  clGetGLObjectInfo:        TclGetGLObjectInfo;
-  clGetGLTextureInfo:       TclGetGLTextureInfo;
-  clEnqueueAcquireGLObjects: TclEnqueueAcquireGLObjects;
-  clEnqueueReleaseGLObjects: TclEnqueueReleaseGLObjects;
-  clGetGLContextInfoKHR:    TclGetGLContextInfoKHR;
+  clGetGLObjectInfo:          TclGetGLObjectInfo;
+  clGetGLTextureInfo:         TclGetGLTextureInfo;
+  clEnqueueAcquireGLObjects:  TclEnqueueAcquireGLObjects;
+  clEnqueueReleaseGLObjects:  TclEnqueueReleaseGLObjects;
+  clGetGLContextInfoKHR:      TclGetGLContextInfoKHR;
+{$ENDIF}
 
-function InitCL_OGL: Boolean;
+{$IFDEF CL_VERSION_1_2}
+  clCreateFromGLTexture:      TclCreateFromGLTexture;
+{$ENDIF}
+
+function InitCL_GL: Boolean;
 
 implementation
 
-function InitCL_OGL: Boolean;
+function InitCL_GL: Boolean;
 begin
   Result := False;
-  if OCL_LibHandle <> nil then begin
-    //OpenGL
-    clCreateFromGLBuffer :=     oclGetProcAddress('clCreateFromGLBuffer', OCL_LibHandle);
-    clCreateFromGLTexture2D :=  oclGetProcAddress('clCreateFromGLTexture2D', OCL_LibHandle);
-    clCreateFromGLTexture3D :=  oclGetProcAddress('clCreateFromGLTexture3D', OCL_LibHandle);
-    clCreateFromGLRenderbuffer := oclGetProcAddress('clCreateFromGLRenderbuffer', OCL_LibHandle);
-    clGetGLObjectInfo :=        oclGetProcAddress('clGetGLObjectInfo', OCL_LibHandle);
-    clGetGLTextureInfo :=       oclGetProcAddress('clGetGLTextureInfo', OCL_LibHandle);
-    clEnqueueAcquireGLObjects := oclGetProcAddress('clEnqueueAcquireGLObjects', OCL_LibHandle);
-    clEnqueueReleaseGLObjects := oclGetProcAddress('clEnqueueReleaseGLObjects', OCL_LibHandle);
-    clGetGLContextInfoKHR :=    oclGetProcAddress('clGetGLContextInfoKHR', OCL_LibHandle);
-
+  if OCL_LibHandle <> nil then
+  begin
+    {$IFDEF CL_VERSION_1_0}
+      clCreateFromGLBuffer := TclCreateFromGLBuffer(oclGetProcAddress('clCreateFromGLBuffer', OCL_LibHandle));
+      {$IFDEF CL_USE_DEPRECATED_OPENCL_1_1_APIS}
+        clCreateFromGLTexture2D := TclCreateFromGLTexture2D(oclGetProcAddress('clCreateFromGLTexture2D', OCL_LibHandle));
+        clCreateFromGLTexture3D := TclCreateFromGLTexture3D(oclGetProcAddress('clCreateFromGLTexture3D', OCL_LibHandle));
+      {$ENDIF}
+      clCreateFromGLRenderbuffer := TclCreateFromGLRenderbuffer(oclGetProcAddress('clCreateFromGLRenderbuffer', OCL_LibHandle));
+      clGetGLObjectInfo := TclGetGLObjectInfo(oclGetProcAddress('clGetGLObjectInfo', OCL_LibHandle));
+      clGetGLTextureInfo := TclGetGLTextureInfo(oclGetProcAddress('clGetGLTextureInfo', OCL_LibHandle));
+      clEnqueueAcquireGLObjects := TclEnqueueAcquireGLObjects(oclGetProcAddress('clEnqueueAcquireGLObjects', OCL_LibHandle));
+      clEnqueueReleaseGLObjects := TclEnqueueReleaseGLObjects(oclGetProcAddress('clEnqueueReleaseGLObjects', OCL_LibHandle));
+      //clGetGLContextInfoKHR :=    oclGetProcAddress('clGetGLContextInfoKHR', OCL_LibHandle);
+      clGetGLContextInfoKHR := TclGetGLContextInfoKHR(oclGetProcAddress('clGetGLContextInfoKHR', OCL_LibHandle));
+    {$ENDIF}
+    {$IFDEF CL_VERSION_1_2}
+      clCreateFromGLTexture := TclCreateFromGLTexture(oclGetProcAddress('clCreateFromGLTexture', OCL_LibHandle));
+    {$ENDIF}
     Result := True;
   end;
 end;

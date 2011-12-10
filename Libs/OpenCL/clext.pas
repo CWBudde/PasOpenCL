@@ -10,9 +10,9 @@
 *)
 (********************************************)
 (*                                          *)
-(*     OpenCL1.0 and Delphi and Windows     *)
+(*     OpenCL1.1 and Delphi and Windows     *)
 (*                                          *)
-(*      created by      : Maksim Tymkovich  *)
+(*      created by      : Maksym Tymkovych  *)
 (*                           (niello)       *)
 (*                                          *)
 (*      headers versions: 0.03              *)
@@ -24,7 +24,7 @@
 (*      e-mail          : muxamed13@ukr.net *)
 (*      ICQ             : 446-769-253       *)
 (*                                          *)
-(*********Copyright (c) niello 2008-2010*****)
+(*********Copyright (c) niello 2008-2011*****)
 unit clext;
 
 interface
