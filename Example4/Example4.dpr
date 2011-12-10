@@ -27,10 +27,10 @@ program Example4;
 {$INCLUDE ..\..\Libs\OpenCL\OpenCL.inc}
 
 uses
-  CL_platform in '..\..\Libs\OpenCL\CL_platform.pas',
-  CL in '..\..\Libs\OpenCL\CL.pas',
-  DelphiCL in '..\..\Libs\OpenCL\DelphiCL.pas',
-  SimpleImageLoader in '..\..\Libs\OpenCL\SimpleImageLoader.pas',
+  CL_platform in '..\Libs\OpenCL\CL_platform.pas',
+  CL in '..\Libs\OpenCL\CL.pas',
+  DelphiCL in '..\Libs\OpenCL\DelphiCL.pas',
+  SimpleImageLoader in '..\Libs\OpenCL\SimpleImageLoader.pas',
   Graphics,
   SysUtils;
 

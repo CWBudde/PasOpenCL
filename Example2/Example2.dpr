@@ -24,12 +24,12 @@
 program Example2;
 
 {$APPTYPE CONSOLE}
-{$INCLUDE ..\..\Libs\OpenCL\OpenCL.inc}
+{$INCLUDE ..\Libs\OpenCL\OpenCL.inc}
 
 uses
-  CL_platform in '..\..\Libs\OpenCL\CL_platform.pas',
-  CL in '..\..\Libs\OpenCL\CL.pas',
-  DelphiCL in '..\..\Libs\OpenCL\DelphiCL.pas',
+  CL_platform in '..\Libs\OpenCL\CL_platform.pas',
+  CL in '..\Libs\OpenCL\CL.pas',
+  DelphiCL in '..\Libs\OpenCL\DelphiCL.pas',
   SysUtils;
 
 const

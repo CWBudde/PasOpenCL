@@ -1941,7 +1941,7 @@ begin
     {$ENDIF}
     FExecuteTime := EndTime-StartTime;
     {$IFDEF LOGGING}
-      WriteLog('Kernel Execution: '+IntToStr(FExecuteTime)+' ns;');
+      WriteLog('EnqueueNDRangeKernel time: '+IntToStr(FExecuteTime)+' ns;');
     {$ENDIF}
   {$ENDIF}
 end;
@@ -1980,7 +1980,7 @@ begin
     {$ENDIF}
     FExecuteTime := EndTime-StartTime;
     {$IFDEF LOGGING}
-      WriteLog('Kernel Execution: '+IntToStr(FExecuteTime)+' ns;');
+      WriteLog('EnqueueNDRangeKernel time: '+IntToStr(FExecuteTime)+' ns;');
     {$ENDIF}
   {$ENDIF}
 end;
@@ -2141,24 +2141,52 @@ end;
 
 procedure TDCLCommandQueue.ReadBuffer(const Buffer: TDCLBuffer;
   const Size: TSize_t; const Data: Pointer);
+{$IFDEF PROFILING}
+var
+  TimingEvent: PCL_event;
+  StartTime,
+  EndTime: TCL_ulong;
+{$ENDIF}
 begin
-  FStatus := clEnqueueReadBuffer(FCommandQueue,Buffer.FMem,CL_TRUE,0,Size,Data,0,nil,nil);
+  FStatus := clEnqueueReadBuffer(FCommandQueue,Buffer.FMem,CL_TRUE,0,Size,Data,0,nil,{$IFDEF PROFILING}@TimingEvent{$ELSE}nil{$ENDIF});
   {$IFDEF LOGGING}
     WriteLog('clEnqueueReadBuffer: '+GetString(FStatus)+';');
   {$ENDIF}
   clFinish(FCommandQueue);
+  {$IFDEF LOGGING}
+    WriteLog('clFinish: '+GetString(FStatus)+';');
+  {$ENDIF}
+  {$IFDEF PROFILING}
+    FStatus := clGetEventProfilingInfo(TimingEvent,CL_PROFILING_COMMAND_START,SizeOf(StartTime),@StartTime,nil);
+    {$IFDEF LOGGING}
+      WriteLog('clGetEventProfilingInfo: '+GetString(FStatus)+';');
+    {$ENDIF}
+    FStatus := clGetEventProfilingInfo(TimingEvent,CL_PROFILING_COMMAND_END,SizeOf(EndTime),@EndTime,nil);
+    {$IFDEF LOGGING}
+      WriteLog('clGetEventProfilingInfo: '+GetString(FStatus)+';');
+    {$ENDIF}
+    FExecuteTime := EndTime-StartTime;
+    {$IFDEF LOGGING}
+      WriteLog('EnqueueReadBuffer time : '+IntToStr(FExecuteTime)+' ns;');
+    {$ENDIF}
+  {$ENDIF}
 end;
 
 procedure TDCLCommandQueue.ReadImage2D(const Image: TDCLImage2D;
   const Width, Height: TSize_t; const Data: Pointer);
 var
   origin,region: Array [0..2]of TSize_t;
+{$IFDEF PROFILING}
+  TimingEvent: PCL_event;
+  StartTime,
+  EndTime: TCL_ulong;
+{$ENDIF}
 begin
   ZeroMemory(@origin,SizeOf(origin));
   region[0] := Width;
   region[1] := Height;
   region[2] := 1;// Image 2D
-  FStatus := clEnqueueReadImage(FCommandQueue,Image.FMem,CL_TRUE,@origin,@region,0,0,Data,0,nil,nil);
+  FStatus := clEnqueueReadImage(FCommandQueue,Image.FMem,CL_TRUE,@origin,@region,0,0,Data,0,nil,{$IFDEF PROFILING}@TimingEvent{$ELSE}nil{$ENDIF});
   {$IFDEF LOGGING}
     WriteLog('clEnqueueReadImage: '+GetString(FStatus)+';');
   {$ENDIF}
@@ -2166,18 +2194,37 @@ begin
   {$IFDEF LOGGING}
     WriteLog('clFinish: '+GetString(FStatus)+';');
   {$ENDIF}
+  {$IFDEF PROFILING}
+    FStatus := clGetEventProfilingInfo(TimingEvent,CL_PROFILING_COMMAND_START,SizeOf(StartTime),@StartTime,nil);
+    {$IFDEF LOGGING}
+      WriteLog('clGetEventProfilingInfo: '+GetString(FStatus)+';');
+    {$ENDIF}
+    FStatus := clGetEventProfilingInfo(TimingEvent,CL_PROFILING_COMMAND_END,SizeOf(EndTime),@EndTime,nil);
+    {$IFDEF LOGGING}
+      WriteLog('clGetEventProfilingInfo: '+GetString(FStatus)+';');
+    {$ENDIF}
+    FExecuteTime := EndTime-StartTime;
+    {$IFDEF LOGGING}
+      WriteLog('clEnqueueReadImage time : '+IntToStr(FExecuteTime)+' ns;');
+    {$ENDIF}
+  {$ENDIF}
 end;
 
 procedure TDCLCommandQueue.WriteImage2D(const Image: TDCLImage2D;
   const Width, Height: TSize_t; const Data: Pointer);
 var
   origin,region: Array [0..2]of TSize_t;
+{$IFDEF PROFILING}
+  TimingEvent: PCL_event;
+  StartTime,
+  EndTime: TCL_ulong;
+{$ENDIF}
 begin
   ZeroMemory(@origin,SizeOf(origin));
   region[0] := Width;
   region[1] := Height;
   region[2] := 1;// Image 2D
-  FStatus := clEnqueueWriteImage(FCommandQueue,Image.FMem,CL_TRUE,@origin,@region,0,0,Data,0,nil,nil);
+  FStatus := clEnqueueWriteImage(FCommandQueue,Image.FMem,CL_TRUE,@origin,@region,0,0,Data,0,nil,{$IFDEF PROFILING}@TimingEvent{$ELSE}nil{$ENDIF});
   {$IFDEF LOGGING}
     WriteLog('clEnqueueWriteImage: '+GetString(FStatus)+';');
   {$ENDIF}
@@ -2185,14 +2232,52 @@ begin
   {$IFDEF LOGGING}
     WriteLog('clFinish: '+GetString(FStatus)+';');
   {$ENDIF}
+  {$IFDEF PROFILING}
+    FStatus := clGetEventProfilingInfo(TimingEvent,CL_PROFILING_COMMAND_START,SizeOf(StartTime),@StartTime,nil);
+    {$IFDEF LOGGING}
+      WriteLog('clGetEventProfilingInfo: '+GetString(FStatus)+';');
+    {$ENDIF}
+    FStatus := clGetEventProfilingInfo(TimingEvent,CL_PROFILING_COMMAND_END,SizeOf(EndTime),@EndTime,nil);
+    {$IFDEF LOGGING}
+      WriteLog('clGetEventProfilingInfo: '+GetString(FStatus)+';');
+    {$ENDIF}
+    FExecuteTime := EndTime-StartTime;
+    {$IFDEF LOGGING}
+      WriteLog('clEnqueueWriteImage time : '+IntToStr(FExecuteTime)+' ns;');
+    {$ENDIF}
+  {$ENDIF}
 end;
 
 procedure TDCLCommandQueue.WriteBuffer(const Buffer: TDCLBuffer;
   const Size: TSize_t; const Data: Pointer);
+{$IFDEF PROFILING}
+var
+  TimingEvent: PCL_event;
+  StartTime,
+  EndTime: TCL_ulong;
+{$ENDIF}
 begin
-  FStatus := clEnqueueWriteBuffer(FCommandQueue,Buffer.FMem,CL_TRUE,0,Size,Data,0,nil,nil);
+  FStatus := clEnqueueWriteBuffer(FCommandQueue,Buffer.FMem,CL_TRUE,0,Size,Data,0,nil,{$IFDEF PROFILING}@TimingEvent{$ELSE}nil{$ENDIF});
   {$IFDEF LOGGING}
     WriteLog('clEnqueueWriteBuffer: '+GetString(FStatus)+';');
+  {$ENDIF}
+  FStatus := clFinish(FCommandQueue);
+  {$IFDEF LOGGING}
+    WriteLog('clFinish: '+GetString(FStatus)+';');
+  {$ENDIF}
+  {$IFDEF PROFILING}
+    FStatus := clGetEventProfilingInfo(TimingEvent,CL_PROFILING_COMMAND_START,SizeOf(StartTime),@StartTime,nil);
+    {$IFDEF LOGGING}
+      WriteLog('clGetEventProfilingInfo: '+GetString(FStatus)+';');
+    {$ENDIF}
+    FStatus := clGetEventProfilingInfo(TimingEvent,CL_PROFILING_COMMAND_END,SizeOf(EndTime),@EndTime,nil);
+    {$IFDEF LOGGING}
+      WriteLog('clGetEventProfilingInfo: '+GetString(FStatus)+';');
+    {$ENDIF}
+    FExecuteTime := EndTime-StartTime;
+    {$IFDEF LOGGING}
+      WriteLog('clEnqueueWriteBuffer time : '+IntToStr(FExecuteTime)+' ns;');
+    {$ENDIF}
   {$ENDIF}
 end;
 
