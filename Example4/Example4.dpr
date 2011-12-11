@@ -4,7 +4,7 @@
 (*                                                                      *)
 (*      project site    : http://code.google.com/p/delphi-opencl/       *)
 (*                                                                      *)
-(*      file name       : Example4.pas                                  *)
+(*      file name       : Example4.dpr                                  *)
 (*      last modify     : 10.12.11                                      *)
 (*      license         : BSD                                           *)
 (*                                                                      *)
@@ -57,9 +57,9 @@ begin
     Kernel := MainProgram.CreateKernel('main');
     Kernel.SetArg(0,InputImage);
     Kernel.SetArg(1,OutputImage);
-    CommandQueue.Execute(Kernel,[ImageLoader.Width,ImageLoader.Height]);
-    ImageLoader.Resize(ImageLoader.Width,ImageLoader.Height);//Dispose and Get Memory
-    CommandQueue.ReadImage2D(OutputImage,ImageLoader.Width,ImageLoader.Height,ImageLoader.Pointer);
+    CommandQueue.Execute(Kernel,[OutputImage.Width,OutputImage.Height]);
+    ImageLoader.Resize(OutputImage.Width,OutputImage.Height);//Dispose and Get Memory
+    CommandQueue.ReadImage2D(OutputImage,ImageLoader.Pointer);
     ImageLoader.SaveToFile(ExtractFilePath(ParamStr(0))+OutputFileName);
     ImageLoader.Free();
     Kernel.Free();

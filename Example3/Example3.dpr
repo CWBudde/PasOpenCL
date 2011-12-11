@@ -4,7 +4,7 @@
 (*                                                                      *)
 (*      project site    : http://code.google.com/p/delphi-opencl/       *)
 (*                                                                      *)
-(*      file name       : Example3.pas                                  *)
+(*      file name       : Example3.dpr                                  *)
 (*      last modify     : 10.12.11                                      *)
 (*      license         : BSD                                           *)
 (*                                                                      *)

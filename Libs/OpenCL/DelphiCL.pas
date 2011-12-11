@@ -20,13 +20,14 @@ unit DelphiCL;
 
 interface
 
+{$INCLUDE OpenCL.inc}
+{$INCLUDE DelphiCL.inc}
+
 uses
   CL,
   Windows,
   SysUtils,
   CL_platform;
-
-{$INCLUDE 'DelphiCL.inc'}
 
 {$IFDEF LOGGING}
 var
@@ -57,9 +58,11 @@ type
     FMem: PCL_mem;
     FStatus: TCL_int;
     FFormat: TCL_image_format;
-    FWidth: TSize_t;
-    FHeight: TSize_t;
     FRowPitch: TSize_t;
+    FWidth,
+    FHeight: TSize_t;
+    //function GetWidth(): TSize_t;
+    //function GetHeight(): TSize_t;
   protected
     constructor Create(const Context: PCL_context; const Flags: TDCLMemFlagsSet; const Format: PCL_image_format; const Width, Height: TSize_t; const RowPitch: TSize_t = 0; const Data: Pointer = nil);
   public
@@ -70,7 +73,7 @@ type
     property Status: TCL_int read FStatus;
   end;
 
-  TDCLCommandQueueProperties = (cqpNone, cqpOutOfOrderExecModeEnable);
+  TDCLCommandQueueProperties = (cqpOutOfOrderExecModeEnable);
   TDCLCommandQueuePropertiesSet = set of TDCLCommandQueueProperties;
 
   TDCLKernel = class
@@ -99,11 +102,11 @@ type
     {$IFDEF PROFILING}
     FExecuteTime: TCL_ulong;
     {$ENDIF}
-    constructor Create(const Device_Id: PCL_device_id; const Context: PCL_context; const Properties: TDCLCommandQueuePropertiesSet = [cqpNone]);
+    constructor Create(const Device_Id: PCL_device_id; const Context: PCL_context; const Properties: TDCLCommandQueuePropertiesSet = []);
   public
     procedure ReadBuffer(const Buffer: TDCLBuffer; const Size: TSize_t; const Data: Pointer);
     procedure WriteBuffer(const Buffer: TDCLBuffer; const Size: TSize_t; const Data: Pointer);
-    procedure ReadImage2D(const Image: TDCLImage2D; const Width,Height: TSize_t; const Data: Pointer);
+    procedure ReadImage2D(const Image: TDCLImage2D; const Data: Pointer);
     procedure WriteImage2D(const Image: TDCLImage2D; const Width,Height: TSize_t; const Data: Pointer);
     procedure Execute(const Kernel: TDCLKernel; const Size: TSize_t); overload;
     procedure Execute(const Kernel: TDCLKernel; //const Device: PCL_device_id;
@@ -152,6 +155,29 @@ type
     property NumDevices: TCL_uint read FNumDevices;
     procedure Free();
   end;
+
+  TDCLDeviceFPConfig = ({$IFDEF CL_VERSION_1_0}
+                        dfpcDenorm,dfpcInfNan,dfpcRoundToNearest,dfpcRoundToZero,
+                        dfpcRoundToInf,dfpcFMA
+                        {$ENDIF}
+                        {$IFDEF CL_VERSION_1_1}
+                        ,dfpcSoftFloat
+                        {$ENDIF}
+                        {$IFDEF CL_VERSION_1_2}
+                        ,dfpcCorrectlyRoundedDivideSqrt
+                        {$ENDIF}
+                        );
+  TDCLDeviceFPConfigSet = Set of TDCLDeviceFPConfig;
+
+  TDCLDeviceExecutionCapabilities = ({$IFDEF CL_VERSION_1_0}decExecKernel,decExecNativeKernel{$ENDIF});
+  TDCLDeviceExecutionCapabilitiesSet = set of TDCLDeviceExecutionCapabilities;
+
+  TDCLDeviceMemCacheType = ({$IFDEF CL_VERSION_1_0}
+                            dmctNone,dmctReadOnlyCache,dmctWriteOnlyCache
+                            {$ENDIF});
+  TDCLDeviceLocalMemType = ({$IFDEF CL_VERSION_1_0}
+                            dlmtLocal,dlmtGlobal 
+                            {$ENDIF});
 
   TDCLDevice = class
   //private
@@ -230,8 +256,15 @@ type
 
     FContext: TDCLContext;
 
+    FFPConfigSet: TDCLDeviceFPConfigSet;
+    FExecutionCapabilities: TDCLDeviceExecutionCapabilitiesSet;
+    FGlobalMemCacheType: TDCLDeviceMemCacheType;
+
+    FLocalMemType: TDCLDeviceLocalMemType;
+
     function GetExtensions(const Index: TSize_t): AnsiString;
     function IsPresentExtension(const ExtensionName: AnsiString): Boolean;
+    function IsPresentInFPConfig(const FPConfig: TDCLDeviceFPConfig): Boolean;
   protected
     constructor Create(Device_id: PCL_device_id);
     property Device_id: PCL_device_id read FDevice_id;
@@ -307,7 +340,7 @@ type
 
     property Context: TDCLContext read FContext;
     function CreateContext(): TDCLContext;
-    function CreateCommandQueue(const properties: TDCLCommandQueuePropertiesSet = [cqpNone]): TDCLCommandQueue;
+    function CreateCommandQueue(const properties: TDCLCommandQueuePropertiesSet = []): TDCLCommandQueue;
     function CreateBuffer(const Size: TSize_t; const Data: Pointer = nil; const flags: TDCLMemFlagsSet = [mfReadWrite]): TDCLBuffer;
     function CreateImage2D(const Format: PCL_image_format; const Width,Height,RowPitch: TSize_t; const Data: Pointer = nil; const flags: TDCLMemFlagsSet = [mfReadWrite]): TDCLImage2D;
     function CreateProgram(const Source: PPAnsiChar; const Options: PAnsiChar = nil): TDCLProgram; overload;
@@ -316,6 +349,9 @@ type
     property ExtensionsCount: TSize_t read FExtensionsCount;
     property Extensions[const Index: TSize_t]: AnsiString read GetExtensions;
     property IsSupportedExtension[const Index: AnsiString]: Boolean read IsPresentExtension;
+
+    property FPConfig[const Index: TDCLDeviceFPConfig]: Boolean read IsPresentInFPConfig;
+    property GlobalMemCacheType: TDCLDeviceMemCacheType read FGlobalMemCacheType;
     procedure Free();
   end;
 
@@ -330,9 +366,20 @@ type
     FStatus: TCL_int;
     FDevices: Array of TDCLDevice;
     FDeviceCount: TCL_uint;
+
+    FCPUs,
+    FGPUs,
+    FAccelerators: Array of TCL_uint;
+    FCPUCount,
+    FGPUCount,
+    FAcceleratorCount: TCL_uint;
+
     FExtensionsCount: TSize_t;
     FExtensions: Array of AnsiString;
     function GetDevice(Index: TCL_uint): TDCLDevice;
+    function GetCPU(Index: TCL_uint): TDCLDevice;
+    function GetGPU(Index: TCL_uint): TDCLDevice;
+    function GetAccelerator(Index: TCL_uint): TDCLDevice;
     function GetExtensions(Index: TSize_t): AnsiString;
     function IsPresentExtension(const ExtensionName: AnsiString): Boolean;
 
@@ -368,8 +415,15 @@ type
     property ExtensionsString: AnsiString read FExtensionsString;
 
     property DeviceCount: TCL_uint read FDeviceCount;
+    property CPUCount: TCL_uint read FCPUCount;
+    property GPUCount: TCL_uint read FGPUCount;
+    property AcceleratorCount: TCL_uint read FAcceleratorCount;
+
     property Status: TCL_int read FStatus;
     property Devices[Index: TCL_uint]: TDCLDevice read GetDevice;
+    property CPUs[Index: TCL_uint]: TDCLDevice read GetCPU;
+    property GPUs[Index: TCL_uint]: TDCLDevice read GetGPU;
+    property Accelerators[Index: TCL_uint]: TDCLDevice read GetAccelerator;
     property ExtensionsCount: TSize_t read FExtensionsCount;
     property Extensions[Index: TSize_t]: AnsiString read GetExtensions;
     property IsSupportedExtension[const Index: AnsiString]: Boolean read IsPresentExtension;
@@ -606,6 +660,9 @@ begin
     WriteLog('FDeviceCount: '+IntToStr(FDeviceCount)+';');
   {$ENDIF}
 
+  FCPUCount := 0;
+  FGPUCount := 0;
+  FAcceleratorCount := 0;
   if FDeviceCount>0 then
   begin
     SetLength(devices,FDeviceCount);
@@ -620,6 +677,25 @@ begin
         WriteLog('FDevice: '+IntToStr(i)+';');
       {$ENDIF}
       FDevices[i] := TDCLDevice.Create(devices[i]);
+      if FDevices[i].IsCPU then
+      begin
+        Inc(FCPUCount);
+        SetLength(FCPUs,FCPUCount);
+        FCPUs[FCPUCount-1] := i;
+      end;
+      if FDevices[i].IsGPU then
+      begin
+        Inc(FGPUCount);
+        SetLength(FGPUs,FGPUCount);
+        FGPUs[FGPUCount-1] := i;
+      end;
+
+      if FDevices[i].IsAccelerator then
+      begin
+        Inc(FAcceleratorCount);
+        SetLength(FAccelerators,FAcceleratorCount);
+        FAccelerators[FAcceleratorCount-1] := i;
+      end;
     end;
   end;
 
@@ -635,8 +711,25 @@ begin
   begin
     FDevices[i].Free();
   end;
+
+  SetLength(FCPUs,0);
+  SetLength(FGPUs,0);
+  SetLength(FAccelerators,0);
+
   SetLength(FDevices,0);
   inherited Free();
+end;
+
+function TDCLPlatform.GetAccelerator(Index: TCL_uint): TDCLDevice;
+begin
+  if Index<FAcceleratorCount then Result := FDevices[FAccelerators[Index]]
+  else Result := nil;
+end;
+
+function TDCLPlatform.GetCPU(Index: TCL_uint): TDCLDevice;
+begin
+  if Index<FCPUCount then Result := FDevices[FCPUs[Index]]
+  else Result := nil;
 end;
 
 function TDCLPlatform.GetDevice(Index: TCL_uint): TDCLDevice;
@@ -1213,6 +1306,12 @@ begin
   else Result := '';
 end;
 
+function TDCLPlatform.GetGPU(Index: TCL_uint): TDCLDevice;
+begin
+  if Index<FGPUCount then Result := FDevices[FGPUs[Index]]
+  else Result := nil;
+end;
+
 function TDCLPlatform.IsPresentExtension(
   const ExtensionName: AnsiString): Boolean;
 var
@@ -1236,25 +1335,22 @@ end;
 constructor TDCLDevice.Create(Device_id: PCL_device_id);
 (*
   need to add
-  CL_DEVICE_TYPE
   CL_DEVICE_MAX_WORK_ITEM_SIZES
-  CL_DEVICE_SINGLE_FP_CONFIG
-  CL_DEVICE_GLOBAL_MEM_CACHE_TYPE
-  CL_DEVICE_GLOBAL_MEM_CACHE_TYPE
-  CL_DEVICE_EXECUTION_CAPABILITIES
-  CL_DEVICE_QUEUE_PROPERTIES 
+  CL_DEVICE_QUEUE_PROPERTIES
 *)
 
 var
   Size: TSize_t;
   device_type: TCL_device_type;
   b_bool: TCL_bool;
-
+  fp_config: TCL_device_fp_config;
+  execution_capabilities: TCL_device_exec_capabilities;
+  global_mem_cache_type: TCL_device_mem_cache_type;
+  local_mem_type: TCL_device_local_mem_type;
   i, current, previous: Integer;
 begin
   inherited Create();
   FDevice_id := Device_id;
-
 
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_NAME, 0, nil, @Size);
   {$IFDEF LOGGING}
@@ -1268,7 +1364,6 @@ begin
   {$IFDEF LOGGING}
     WriteLog('CL_DEVICE_NAME: '+FName+';');
   {$ENDIF}
-
 
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_VENDOR, 0, nil, @Size);
   {$IFDEF LOGGING}
@@ -1752,6 +1847,63 @@ begin
   {$IFDEF LOGGING}
     WriteLog('CL_DRIVER_VERSION: '+FDriverVersion+';');
   {$ENDIF}
+  FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_SINGLE_FP_CONFIG, SizeOf(fp_config),@fp_config,nil);
+  {$IFDEF LOGGING}
+    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('CL_DEVICE_SINGLE_FP_CONFIG: '+IntToStr(fp_config)+';');
+  {$ENDIF}
+
+  FFPConfigSet := [];
+  {$IFDEF CL_VERSION_1_0}
+    if (fp_config and CL_FP_DENORM)<>0 then FFPConfigSet := FFPConfigSet+[dfpcDenorm];
+    if (fp_config and CL_FP_INF_NAN)<>0 then FFPConfigSet := FFPConfigSet+[dfpcInfNan];
+    if (fp_config and CL_FP_ROUND_TO_NEAREST)<>0 then FFPConfigSet := FFPConfigSet+[dfpcRoundToNearest];
+    if (fp_config and CL_FP_ROUND_TO_ZERO)<>0 then FFPConfigSet := FFPConfigSet+[dfpcRoundToZero];
+    if (fp_config and CL_FP_ROUND_TO_INF)<>0 then FFPConfigSet := FFPConfigSet+[dfpcRoundToInf];
+    if (fp_config and CL_FP_FMA)<>0 then FFPConfigSet := FFPConfigSet+[dfpcFMA];
+  {$ENDIF}
+  {$IFDEF CL_VERSION_1_1}
+    if (fp_config and CL_FP_SOFT_FLOAT)<>0 then FFPConfigSet := FFPConfigSet+[dfpcSoftFloat];
+  {$ENDIF}
+  {$IFDEF CL_VERSION_1_2}
+    if (fp_config and CL_FP_CORRECTLY_ROUNDED_DIVIDE_SQRT)<>0 then FFPConfigSet := FFPConfigSet+[dfpcCorrectlyRoundedDivideSqrt];
+  {$ENDIF}
+
+  FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_EXECUTION_CAPABILITIES, SizeOf(execution_capabilities),@execution_capabilities,nil);
+  {$IFDEF LOGGING}
+    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('CL_DEVICE_EXECUTION_CAPABILITIES: '+IntToStr(execution_capabilities)+';');
+  {$ENDIF}
+  FExecutionCapabilities := [];
+  {$IFDEF CL_VERSION_1_0}
+    if (execution_capabilities and CL_EXEC_KERNEL)<>0 then FExecutionCapabilities := FExecutionCapabilities+[decExecKernel];
+    if (execution_capabilities and CL_EXEC_NATIVE_KERNEL)<>0 then FExecutionCapabilities := FExecutionCapabilities+[decExecNativeKernel];
+  {$ENDIF}
+
+  FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_GLOBAL_MEM_CACHE_TYPE, SizeOf(global_mem_cache_type),@global_mem_cache_type,nil);
+  {$IFDEF LOGGING}
+    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('CL_DEVICE_GLOBAL_MEM_CACHE_TYPE: '+IntToStr(global_mem_cache_type)+';');
+  {$ENDIF}
+
+  {$IFDEF CL_VERSION_1_0}
+    if (global_mem_cache_type and CL_NONE)<>0 then FGlobalMemCacheType := dmctNone;
+    if (global_mem_cache_type and CL_READ_ONLY_CACHE)<>0 then FGlobalMemCacheType := dmctReadOnlyCache;
+    if (global_mem_cache_type and CL_READ_WRITE_CACHE)<>0 then FGlobalMemCacheType := dmctWriteOnlyCache;
+  {$ENDIF}
+
+
+  FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_LOCAL_MEM_TYPE, SizeOf(local_mem_type),@local_mem_type,nil);
+  {$IFDEF LOGGING}
+    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('CL_DEVICE_LOCAL_MEM_TYPE: '+IntToStr(local_mem_type)+';');
+  {$ENDIF}
+
+  {$IFDEF CL_VERSION_1_0}
+    if (local_mem_type and CL_LOCAL)<>0 then FLocalMemType := dlmtLocal;
+    if (local_mem_type and CL_GLOBAL)<>0 then FLocalMemType := dlmtGlobal;
+  {$ENDIF}
+
   FContext := TDCLContext.Create(FDevice_id);
 end;
 
@@ -1832,6 +1984,12 @@ begin
       Break;
     end;
   end;
+end;
+
+function TDCLDevice.IsPresentInFPConfig(
+  const FPConfig: TDCLDeviceFPConfig): Boolean;
+begin
+  Result := FPConfig in FFPConfigSet;
 end;
 
 { TDCLContext }
@@ -2184,8 +2342,7 @@ begin
   {$ENDIF}
 end;
 
-procedure TDCLCommandQueue.ReadImage2D(const Image: TDCLImage2D;
-  const Width, Height: TSize_t; const Data: Pointer);
+procedure TDCLCommandQueue.ReadImage2D(const Image: TDCLImage2D; const Data: Pointer);
 var
   origin,region: Array [0..2]of TSize_t;
 {$IFDEF PROFILING}
@@ -2195,8 +2352,8 @@ var
 {$ENDIF}
 begin
   ZeroMemory(@origin,SizeOf(origin));
-  region[0] := Width;
-  region[1] := Height;
+  region[0] := Image.Width;
+  region[1] := Image.Height;
   region[2] := 1;// Image 2D
   FStatus := clEnqueueReadImage(FCommandQueue,Image.FMem,CL_TRUE,@origin,@region,0,0,Data,0,nil,{$IFDEF PROFILING}@TimingEvent{$ELSE}nil{$ENDIF});
   {$IFDEF LOGGING}
@@ -2220,6 +2377,7 @@ begin
       WriteLog('clEnqueueReadImage time : '+IntToStr(FExecuteTime)+' ns;');
     {$ENDIF}
   {$ENDIF}
+
 end;
 
 procedure TDCLCommandQueue.WriteImage2D(const Image: TDCLImage2D;
@@ -2310,6 +2468,8 @@ begin
   if mfAllocHostPtr in flags then fgs:=fgs or CL_MEM_ALLOC_HOST_PTR;
   if mfCopyHostPtr in flags then fgs:=fgs or CL_MEM_COPY_HOST_PTR;
   FFormat:= Format^;
+  FWidth := Width;
+  FHeight:= Height;
   FMem := clCreateImage2D(Context, fgs, @FFormat, Width, Height, RowPitch, Data, @FStatus);
   {$IFDEF LOGGING}
     WriteLog('clCreateImage2D: '+GetString(FStatus)+';');
@@ -2324,6 +2484,32 @@ begin
   {$ENDIF}
   inherited Free();
 end;
+
+(*
+function TDCLImage2D.GetHeight: TSize_t;
+var
+  h: TSize_t;
+begin
+  FStatus := clGetImageInfo(FMem,CL_IMAGE_HEIGHT,SizeOf(h),@h,nil);
+  Result := h;
+  {$IFDEF LOGGING}
+    WriteLog('clGetImageInfo: '+GetString(FStatus)+';');
+    WriteLog('CL_IMAGE_HEIGHT: '+IntToStr(h)+';');
+  {$ENDIF}
+end;
+
+function TDCLImage2D.GetWidth: TSize_t;
+var
+  w: TSize_t;
+begin
+  FStatus := clGetImageInfo(FMem,CL_IMAGE_WIDTH,SizeOf(w),@w,nil);
+  Result := w;
+  {$IFDEF LOGGING}
+    WriteLog('clGetImageInfo: '+GetString(FStatus)+';');
+    WriteLog('CL_IMAGE_WIDTH: '+IntToStr(w)+';');
+  {$ENDIF}
+end;
+*)
 
 {$IFDEF LOGGING}
 initialization

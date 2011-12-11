@@ -1820,7 +1820,7 @@ var
 {$IFDEF CL_VERSION_1_0}
   clRetainProgram:            TclRetainProgram;
   clReleaseProgram:           TclReleaseProgram;
-  clBuildProgram:         TclBuildProgram;
+  clBuildProgram:             TclBuildProgram;
 {$ENDIF}
 
 {$IFDEF CL_VERSION_1_2}
