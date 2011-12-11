@@ -122,17 +122,19 @@ type
     FProgram: PCL_program;
     FStatus: TCL_int;
     FSource: PAnsiChar;
+    FLog: AnsiString;
     FBinarySizesCount: TSize_t;
     FBinarySizes: TArraySize_t;
     //FBinaries: PByte;
   protected
-    constructor Create(const Context: PCL_context; const Source: PPAnsiChar; const Options: PAnsiChar = nil);
+    constructor Create(const Device: PCL_device_id; const Context: PCL_context; const Source: PPAnsiChar; const Options: PAnsiChar = nil);
     function GetBinarySizes(const Index: TSize_t): TSize_t;
   public
     property BinarySizes[const Index: TSize_t]: TSize_t read GetBinarySizes;
     property BinarySizesCount: TSize_t read FBinarySizesCount;
     property Source: PAnsiChar read FSource;
     property Status: TCL_int read FStatus;
+    property Log: AnsiString read FLog;
     function CreateKernel(const KernelName: PAnsiChar): TDCLKernel;
     procedure Free();
   end;
@@ -1772,7 +1774,7 @@ end;
 function TDCLDevice.CreateProgram(const Source: PPAnsiChar;
   const Options: PAnsiChar): TDCLProgram;
 begin
-  Result := TDCLProgram.Create(FContext.FContext,Source,Options);
+  Result := TDCLProgram.Create(FDevice_id,FContext.FContext,Source,Options);
 end;
 
 function TDCLDevice.CreateImage2D(const Format: PCL_image_format; const Width, Height, RowPitch: TSize_t;
@@ -1996,7 +1998,8 @@ end;
 
 { TDCLProgram }
 
-constructor TDCLProgram.Create(const Context: PCL_context;
+constructor TDCLProgram.Create(const Device: PCL_device_id;
+  const Context: PCL_context;
   const Source: PPAnsiChar; const Options: PAnsiChar);
 var
   Size: TSize_t;
@@ -2010,7 +2013,16 @@ begin
   {$IFDEF LOGGING}
     WriteLog('clBuildProgram: '+GetString(FStatus)+';');
   {$ENDIF}
-
+  FStatus := clGetProgramBuildInfo(FProgram,Device,CL_PROGRAM_BUILD_LOG,0,nil,@Size);
+  {$IFDEF LOGGING}
+    WriteLog('clGetProgramBuildInfo: '+GetString(FStatus)+';');
+  {$ENDIF}
+  SetLength(FLog,Size);
+  FStatus := clGetProgramBuildInfo(FProgram,Device,CL_PROGRAM_BUILD_LOG,Size,@FLog[1],nil);
+  {$IFDEF LOGGING}
+    WriteLog('clGetProgramBuildInfo: '+GetString(FStatus)+';');
+    WriteLog('FLog: '+FLog+';');
+  {$ENDIF}
   FStatus := clGetProgramInfo(FProgram,CL_PROGRAM_SOURCE,0,nil,@Size);
   {$IFDEF LOGGING}
     WriteLog('clGetProgramInfo: '+GetString(FStatus)+';');
