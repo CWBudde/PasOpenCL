@@ -25,8 +25,10 @@ interface
 
 uses
   CL,
+  CL_gl,
   Windows,
   SysUtils,
+  dglOpenGL,
   CL_platform;
 
 {$IFDEF LOGGING}
@@ -47,6 +49,7 @@ type
     FSize: TSize_t;
   protected
     constructor Create(const Context: PCL_context; const Flags: TDCLMemFlagsSet; const Size: TSize_t; const Data: Pointer=nil);
+    constructor CreateFromGL(const Context: PCL_context; const Flags: TDCLMemFlagsSet; const Data: Pointer=nil);
   public
     procedure Free();
     property Size: TSize_t read FSize;
@@ -111,6 +114,11 @@ type
     procedure Execute(const Kernel: TDCLKernel; const Size: TSize_t); overload;
     procedure Execute(const Kernel: TDCLKernel; //const Device: PCL_device_id;
                       const Size: array of TSize_t);overload;
+
+
+    procedure AcquireGLObject(const Buffer: TDCLBuffer);
+    procedure ReleaseGLObject(const Buffer: TDCLBuffer);
+
     property Status: TCL_int read FStatus;
     property Properties: TDCLCommandQueuePropertiesSet read FProperties;
     {$IFDEF PROFILING}
@@ -151,6 +159,7 @@ type
     //property Context: PCL_context read FContext;
   public
     constructor Create(Device_id: PCL_device_id);
+    constructor CreateGL(Device_id: PCL_device_id);
     property Status: TCL_int read FStatus;
     property NumDevices: TCL_uint read FNumDevices;
     procedure Free();
@@ -340,8 +349,13 @@ type
 
     property Context: TDCLContext read FContext;
     function CreateContext(): TDCLContext;
-    function CreateCommandQueue(const properties: TDCLCommandQueuePropertiesSet = []): TDCLCommandQueue;
+    function CreateContextGL(): TDCLContext;
+    function CreateCommandQueue(const properties: TDCLCommandQueuePropertiesSet = []): TDCLCommandQueue;overload;
+    function CreateCommandQueue(const context: TDCLContext; const properties: TDCLCommandQueuePropertiesSet = []): TDCLCommandQueue;overload;
     function CreateBuffer(const Size: TSize_t; const Data: Pointer = nil; const flags: TDCLMemFlagsSet = [mfReadWrite]): TDCLBuffer;
+
+    function CreateFromGLBuffer(const Data: Pointer = nil; const flags: TDCLMemFlagsSet = [mfWriteOnly]): TDCLBuffer;
+
     function CreateImage2D(const Format: PCL_image_format; const Width,Height,RowPitch: TSize_t; const Data: Pointer = nil; const flags: TDCLMemFlagsSet = [mfReadWrite]): TDCLImage2D;
     function CreateProgram(const Source: PPAnsiChar; const Options: PAnsiChar = nil): TDCLProgram; overload;
     function CreateProgram(const FileName: String; const Options: PAnsiChar = nil): TDCLProgram; overload;
@@ -1918,9 +1932,20 @@ begin
   Result := TDCLCommandQueue.Create(Device_id, Context.FContext, properties);
 end;
 
+function TDCLDevice.CreateCommandQueue(const Context: TDCLContext;
+  const properties: TDCLCommandQueuePropertiesSet): TDCLCommandQueue;
+begin
+  Result := TDCLCommandQueue.Create(Device_id, Context.FContext, properties);
+end;
+
 function TDCLDevice.CreateContext: TDCLContext;
 begin
   Result := TDCLContext.Create(FDevice_id);
+end;
+
+function TDCLDevice.CreateContextGL: TDCLContext;
+begin
+  Result := TDCLContext.CreateGL(FDevice_id);
 end;
 
 function TDCLDevice.CreateProgram(const Source: PPAnsiChar;
@@ -1992,6 +2017,12 @@ begin
   Result := FPConfig in FFPConfigSet;
 end;
 
+function TDCLDevice.CreateFromGLBuffer(const Data: Pointer;
+  const flags: TDCLMemFlagsSet): TDCLBuffer;
+begin
+  Result := TDCLBuffer.CreateFromGL(Context.FContext,flags,Data);
+end;
+
 { TDCLContext }
 
 constructor TDCLContext.Create(Device_id: PCL_device_id);
@@ -2015,6 +2046,49 @@ begin
   {$ENDIF}
 end;
 
+constructor TDCLContext.CreateGL(Device_id: PCL_device_id);
+var
+  props: Array [0..4]of TCL_uint;
+begin
+  inherited Create();
+  props[0] := CL_GL_CONTEXT_KHR;
+
+  //MacOsX not yet (Andoid hm....)
+  //MAcOSX, Linux, Windows: http://www.dyn-lab.com/articles/cl-gl.html
+  {$IFDEF WINDOWS}
+    props[1] := wglGetCurrentContext();//glXGetCurrentContext(),
+    props[2] := CL_WGL_HDC_KHR;
+    props[3] := wglGetCurrentDC();//glXGetCurrentDisplay(),
+  {$ENDIF}
+  {$IFDEF LINUX}
+    props[1] := glXGetCurrentContext();
+    props[2] := CL_GLX_DISPLAY_KHR;
+    props[3] := glXGetCurrentDisplay();
+  {$ENDIF}
+  props[4] := 0;
+
+  FContext := clCreateContext(@props[0],1,@Device_id,nil,nil,@FStatus);
+  {$IFDEF LOGGING}
+    WriteLog('clCreateContext: '+GetString(FStatus)+';');
+  {$ENDIF}
+  FStatus := clGetContextInfo(FContext, CL_CONTEXT_NUM_DEVICES ,SizeOf(FNumDevices),@FNumDevices,nil);
+  {$IFDEF LOGGING}
+    WriteLog('clGetContextInfo: '+GetString(FStatus)+';');
+  {$ENDIF}
+  {$IFDEF LOGGING}
+    WriteLog('CL_CONTEXT_NUM_DEVICES: '+IntToStr(FNumDevices)+';');
+  {$ENDIF}
+end;
+
+procedure TDCLContext.Free;
+begin
+  FStatus := clReleaseContext(FContext);
+  {$IFDEF LOGGING}
+    WriteLog('clReleaseContext: '+GetString(FStatus)+';');
+  {$ENDIF}
+  inherited Free();
+end;
+
 { TDCLQueue }
 
 constructor TDCLCommandQueue.Create(const Device_Id: PCL_device_id; const Context: PCL_context;
@@ -2035,16 +2109,6 @@ begin
     FProperties:=Properties;
 end;
 
-
-procedure TDCLContext.Free;
-begin
-  FStatus := clReleaseContext(FContext);
-  {$IFDEF LOGGING}
-    WriteLog('clReleaseContext: '+GetString(FStatus)+';');
-  {$ENDIF}
-  inherited Free();
-end;
-
 { TDCLBuffer }
 
 constructor TDCLBuffer.Create(const Context: PCL_context;
@@ -2063,6 +2127,26 @@ begin
   FMem := clCreateBuffer(Context,fgs,Size,Data,@FStatus);
   {$IFDEF LOGGING}
     WriteLog('clCreateBuffer: '+GetString(FStatus)+';');
+  {$ENDIF}
+  FSize := Size;
+end;
+
+constructor TDCLBuffer.CreateFromGL(const Context: PCL_context;
+  const Flags: TDCLMemFlagsSet; const Data: Pointer);
+var
+  fgs: TCL_mem_flags;
+begin
+  inherited Create();
+  fgs:=0;
+  if mfReadWrite in flags then fgs:=fgs or CL_MEM_READ_WRITE;
+  if mfWriteOnly in flags then fgs:=fgs or CL_MEM_WRITE_ONLY;
+  if mfReadOnly in flags then fgs:=fgs or CL_MEM_READ_ONLY;
+  if mfUseHostPtr in flags then fgs:=fgs or CL_MEM_USE_HOST_PTR;
+  if mfAllocHostPtr in flags then fgs:=fgs or CL_MEM_ALLOC_HOST_PTR;
+  if mfCopyHostPtr in flags then fgs:=fgs or CL_MEM_COPY_HOST_PTR;
+  FMem := clCreateFromGLBuffer(Context,fgs,PGLUint(Data)^,@FStatus);
+  {$IFDEF LOGGING}
+    WriteLog('clCreateFromGLBuffer: '+GetString(FStatus)+';');
   {$ENDIF}
   FSize := Size;
 end;
@@ -2451,6 +2535,22 @@ begin
   {$ENDIF}
 end;
 
+procedure TDCLCommandQueue.AcquireGLObject(const Buffer: TDCLBuffer);
+begin
+  FStatus := clEnqueueAcquireGLObjects(FCommandQueue, 1, @Buffer.FMem, 0,nil,nil);
+  {$IFDEF LOGGING}
+    WriteLog('clEnqueueAcquireGLObjects: '+GetString(FStatus)+';');
+  {$ENDIF}
+end;
+
+procedure TDCLCommandQueue.ReleaseGLObject(const Buffer: TDCLBuffer);
+begin
+  FStatus := clEnqueueReleaseGLObjects(FCommandQueue, 1, @Buffer.FMem, 0,nil,nil);
+  {$IFDEF LOGGING}
+    WriteLog('clEnqueueReleaseGLObjects: '+GetString(FStatus)+';');
+  {$ENDIF}
+end;
+
 { TDCLImage2D }
 
 constructor TDCLImage2D.Create(const Context: PCL_context;
@@ -2485,31 +2585,7 @@ begin
   inherited Free();
 end;
 
-(*
-function TDCLImage2D.GetHeight: TSize_t;
-var
-  h: TSize_t;
-begin
-  FStatus := clGetImageInfo(FMem,CL_IMAGE_HEIGHT,SizeOf(h),@h,nil);
-  Result := h;
-  {$IFDEF LOGGING}
-    WriteLog('clGetImageInfo: '+GetString(FStatus)+';');
-    WriteLog('CL_IMAGE_HEIGHT: '+IntToStr(h)+';');
-  {$ENDIF}
-end;
 
-function TDCLImage2D.GetWidth: TSize_t;
-var
-  w: TSize_t;
-begin
-  FStatus := clGetImageInfo(FMem,CL_IMAGE_WIDTH,SizeOf(w),@w,nil);
-  Result := w;
-  {$IFDEF LOGGING}
-    WriteLog('clGetImageInfo: '+GetString(FStatus)+';');
-    WriteLog('CL_IMAGE_WIDTH: '+IntToStr(w)+';');
-  {$ENDIF}
-end;
-*)
 
 {$IFDEF LOGGING}
 initialization

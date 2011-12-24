@@ -268,8 +268,7 @@ begin
       clGetGLTextureInfo := TclGetGLTextureInfo(oclGetProcAddress('clGetGLTextureInfo', OCL_LibHandle));
       clEnqueueAcquireGLObjects := TclEnqueueAcquireGLObjects(oclGetProcAddress('clEnqueueAcquireGLObjects', OCL_LibHandle));
       clEnqueueReleaseGLObjects := TclEnqueueReleaseGLObjects(oclGetProcAddress('clEnqueueReleaseGLObjects', OCL_LibHandle));
-      //clGetGLContextInfoKHR :=    oclGetProcAddress('clGetGLContextInfoKHR', OCL_LibHandle);
-      clGetGLContextInfoKHR := TclGetGLContextInfoKHR(oclGetProcAddress('clGetGLContextInfoKHR', OCL_LibHandle));
+      clGetGLContextInfoKHR := TclGetGLContextInfoKHR(clGetExtensionFunctionAddress('clGetGLContextInfoKHR'));
     {$ENDIF}
     {$IFDEF CL_VERSION_1_2}
       clCreateFromGLTexture := TclCreateFromGLTexture(oclGetProcAddress('clCreateFromGLTexture', OCL_LibHandle));
