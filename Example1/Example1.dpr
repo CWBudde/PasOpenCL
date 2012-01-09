@@ -52,6 +52,7 @@ begin
     InputBuffer := CreateBuffer(SIZE,@Input,[mfReadOnly,mfUseHostPtr]);//If dynamical array @Input[0]
     OutputBuffer := CreateBuffer(SIZE,nil,[mfWriteOnly]);
     SimpleProgram := CreateProgram(ExtractFilePath(ParamStr(0))+'Example1.cl');
+    SimpleProgram.SaveToFile('example1.bin');
     Kernel := SimpleProgram.CreateKernel('somekernel');
     Kernel.SetArg(0,InputBuffer);
     Kernel.SetArg(1,OutputBuffer);

@@ -64,10 +64,9 @@ type
     FRowPitch: TSize_t;
     FWidth,
     FHeight: TSize_t;
-    //function GetWidth(): TSize_t;
-    //function GetHeight(): TSize_t;
   protected
     constructor Create(const Context: PCL_context; const Flags: TDCLMemFlagsSet; const Format: PCL_image_format; const Width, Height: TSize_t; const RowPitch: TSize_t = 0; const Data: Pointer = nil);
+    constructor CreateFromGL(const Context: PCL_context; const Flags: TDCLMemFlagsSet; const Texture: TGLuint);
   public
     procedure Free();
     property Width: TSize_t read FWidth;
@@ -116,8 +115,10 @@ type
                       const Size: array of TSize_t);overload;
 
 
-    procedure AcquireGLObject(const Buffer: TDCLBuffer);
-    procedure ReleaseGLObject(const Buffer: TDCLBuffer);
+    procedure AcquireGLObject(const Buffer: TDCLBuffer);overload;
+    procedure AcquireGLObject(const Image2D: TDCLImage2D);overload;
+    procedure ReleaseGLObject(const Buffer: TDCLBuffer);overload;
+    procedure ReleaseGLObject(const Image2D: TDCLImage2D);overload;
 
     property Status: TCL_int read FStatus;
     property Properties: TDCLCommandQueuePropertiesSet read FProperties;
@@ -134,19 +135,17 @@ type
     FStatus: TCL_int;
     FSource: PAnsiChar;
     FLog: AnsiString;
-    FBinarySizesCount: TSize_t;
-    FBinarySizes: TArraySize_t;
-    //FBinaries: PByte;
+    FBinarySizes: TSize_t;
+    FBinaries: Array of Array of AnsiChar;
   protected
     constructor Create(const Device: PCL_device_id; const Context: PCL_context; const Source: PPAnsiChar; const Options: PAnsiChar = nil);
-    function GetBinarySizes(const Index: TSize_t): TSize_t;
   public
-    property BinarySizes[const Index: TSize_t]: TSize_t read GetBinarySizes;
-    property BinarySizesCount: TSize_t read FBinarySizesCount;
+    property BinarySizes: TSize_t read FBinarySizes;
     property Source: PAnsiChar read FSource;
     property Status: TCL_int read FStatus;
     property Log: AnsiString read FLog;
     function CreateKernel(const KernelName: PAnsiChar): TDCLKernel;
+    procedure SaveToFile(const FileName: AnsiString);
     procedure Free();
   end;
 
@@ -357,6 +356,8 @@ type
     function CreateFromGLBuffer(const Data: Pointer = nil; const flags: TDCLMemFlagsSet = [mfWriteOnly]): TDCLBuffer;
 
     function CreateImage2D(const Format: PCL_image_format; const Width,Height,RowPitch: TSize_t; const Data: Pointer = nil; const flags: TDCLMemFlagsSet = [mfReadWrite]): TDCLImage2D;
+    function CreateFromGLImage2D(const Texture: TGLuint; const Flags: TDCLMemFlagsSet = [mfWriteOnly]): TDCLImage2D;
+
     function CreateProgram(const Source: PPAnsiChar; const Options: PAnsiChar = nil): TDCLProgram; overload;
     function CreateProgram(const FileName: String; const Options: PAnsiChar = nil): TDCLProgram; overload;
 
@@ -590,7 +591,6 @@ begin
   {$IFDEF LOGGING}
     WriteLog('CL_PLATFORM_PROFILE: '+FProfile+';');
   {$ENDIF}
-  //FProfile := Buffer;
 
   FStatus := clGetPlatformInfo(FPlatform_id,CL_PLATFORM_VERSION,0,nil,@Size);
   {$IFDEF LOGGING}
@@ -751,8 +751,6 @@ begin
   if (Index<FDeviceCount)then Result := FDevices[Index]
   else Result := nil;
 end;
-
-
 
 function TDCLPlatform.GetDeviceWithMaxClockFrequency: TDCLDevice;
   function GetParameterDevice(const Device: TDCLDevice): TCL_uint;
@@ -1588,7 +1586,7 @@ begin
   {$IFDEF LOGGING}
     WriteLog('CL_DEVICE_IMAGE_SUPPORT: '+IntToStr(b_bool)+';');
   {$ENDIF}
-  if b_bool<>0 then FIsImageSupport := True;
+  FIsImageSupport := Boolean(b_bool);
 
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_MAX_READ_IMAGE_ARGS , SizeOf(FMaxReadImageArgs), @FMaxReadImageArgs, nil);
   {$IFDEF LOGGING}
@@ -1713,23 +1711,23 @@ begin
     WriteLog('CL_DEVICE_LOCAL_MEM_SIZE: '+IntToStr(FLocalMemSize)+';');
   {$ENDIF}
 
-  FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_ENDIAN_LITTLE , SizeOf(b_bool), @b_bool, nil);
+  FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_ERROR_CORRECTION_SUPPORT , SizeOf(b_bool), @b_bool, nil);
   {$IFDEF LOGGING}
     WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_ENDIAN_LITTLE: '+IntToStr(b_bool)+';');
+    WriteLog('CL_DEVICE_ERROR_CORRECTION_SUPPORT: '+IntToStr(b_bool)+';');
   {$ENDIF}
-  if b_bool<>0 then FIsErrorCorrectionSupport := True;
+  FIsErrorCorrectionSupport := Boolean(b_bool);
 
-  FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_ENDIAN_LITTLE , SizeOf(b_bool), @b_bool, nil);
+  FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_HOST_UNIFIED_MEMORY , SizeOf(b_bool), @b_bool, nil);
   {$IFDEF LOGGING}
     WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_ENDIAN_LITTLE: '+IntToStr(b_bool)+';');
+    WriteLog('CL_DEVICE_HOST_UNIFIED_MEMORY: '+IntToStr(b_bool)+';');
   {$ENDIF}
-  if b_bool<>0 then FIsHostUnifiedMemory := True;
+  FIsHostUnifiedMemory := Boolean(b_bool);
 
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_PROFILING_TIMER_RESOLUTION , SizeOf(FProfilingTimerResolution), @FProfilingTimerResolution, nil);
   {$IFDEF LOGGING}
@@ -1745,7 +1743,7 @@ begin
   {$IFDEF LOGGING}
     WriteLog('CL_DEVICE_ENDIAN_LITTLE: '+IntToStr(b_bool)+';');
   {$ENDIF}
-  if b_bool<>0 then FIsEndianLittle := True;
+  FIsEndianLittle := Boolean(b_bool);
 
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_AVAILABLE , SizeOf(b_bool), @b_bool, nil);
   {$IFDEF LOGGING}
@@ -1754,7 +1752,7 @@ begin
   {$IFDEF LOGGING}
     WriteLog('CL_DEVICE_AVAILABLE: '+IntToStr(b_bool)+';');
   {$ENDIF}
-  if b_bool<>0 then FIsAvailable := True;
+  FIsAvailable := Boolean(b_bool);
 
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_COMPILER_AVAILABLE , SizeOf(b_bool), @b_bool, nil);
   {$IFDEF LOGGING}
@@ -1763,7 +1761,7 @@ begin
   {$IFDEF LOGGING}
     WriteLog('CL_DEVICE_COMPILER_AVAILABLE: '+IntToStr(b_bool)+';');
   {$ENDIF}
-  if b_bool<>0 then FIsCompilerAvailable := True;
+  FIsCompilerAvailable := Boolean(b_bool);
 
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_VENDOR_ID , SizeOf(FVendorId), @FVendorId, nil);
   {$IFDEF LOGGING}
@@ -1869,18 +1867,66 @@ begin
 
   FFPConfigSet := [];
   {$IFDEF CL_VERSION_1_0}
-    if (fp_config and CL_FP_DENORM)<>0 then FFPConfigSet := FFPConfigSet+[dfpcDenorm];
-    if (fp_config and CL_FP_INF_NAN)<>0 then FFPConfigSet := FFPConfigSet+[dfpcInfNan];
-    if (fp_config and CL_FP_ROUND_TO_NEAREST)<>0 then FFPConfigSet := FFPConfigSet+[dfpcRoundToNearest];
-    if (fp_config and CL_FP_ROUND_TO_ZERO)<>0 then FFPConfigSet := FFPConfigSet+[dfpcRoundToZero];
-    if (fp_config and CL_FP_ROUND_TO_INF)<>0 then FFPConfigSet := FFPConfigSet+[dfpcRoundToInf];
-    if (fp_config and CL_FP_FMA)<>0 then FFPConfigSet := FFPConfigSet+[dfpcFMA];
+    if (fp_config and CL_FP_DENORM)<>0 then
+    begin
+      FFPConfigSet := FFPConfigSet+[dfpcDenorm];
+      {$IFDEF LOGGING}
+        WriteLog('CL_DEVICE_SINGLE_FP_CONFIG: CL_FP_DENORM;');
+      {$ENDIF}
+    end;
+    if (fp_config and CL_FP_INF_NAN)<>0 then
+    begin
+      FFPConfigSet := FFPConfigSet+[dfpcInfNan];
+      {$IFDEF LOGGING}
+        WriteLog('CL_DEVICE_SINGLE_FP_CONFIG: CL_FP_INF_NAN;');
+      {$ENDIF}
+    end;
+    if (fp_config and CL_FP_ROUND_TO_NEAREST)<>0 then
+    begin
+      FFPConfigSet := FFPConfigSet+[dfpcRoundToNearest];
+      {$IFDEF LOGGING}
+        WriteLog('CL_DEVICE_SINGLE_FP_CONFIG: CL_FP_ROUND_TO_NEAREST;');
+      {$ENDIF}
+    end;
+    if (fp_config and CL_FP_ROUND_TO_ZERO)<>0 then
+    begin
+      FFPConfigSet := FFPConfigSet+[dfpcRoundToZero];
+      {$IFDEF LOGGING}
+        WriteLog('CL_DEVICE_SINGLE_FP_CONFIG: CL_FP_ROUND_TO_ZERO;');
+      {$ENDIF}
+    end;
+    if (fp_config and CL_FP_ROUND_TO_INF)<>0 then
+    begin
+      FFPConfigSet := FFPConfigSet+[dfpcRoundToInf];
+      {$IFDEF LOGGING}
+        WriteLog('CL_DEVICE_SINGLE_FP_CONFIG: CL_FP_ROUND_TO_INF;');
+      {$ENDIF}
+    end;
+    if (fp_config and CL_FP_FMA)<>0 then
+    begin
+      FFPConfigSet := FFPConfigSet+[dfpcFMA];
+      {$IFDEF LOGGING}
+        WriteLog('CL_DEVICE_SINGLE_FP_CONFIG: CL_FP_FMA;');
+      {$ENDIF}
+    end;
   {$ENDIF}
   {$IFDEF CL_VERSION_1_1}
-    if (fp_config and CL_FP_SOFT_FLOAT)<>0 then FFPConfigSet := FFPConfigSet+[dfpcSoftFloat];
+    if (fp_config and CL_FP_SOFT_FLOAT)<>0 then
+    begin
+      FFPConfigSet := FFPConfigSet+[dfpcSoftFloat];
+      {$IFDEF LOGGING}
+        WriteLog('CL_DEVICE_SINGLE_FP_CONFIG: CL_FP_SOFT_FLOAT;');
+      {$ENDIF}
+    end;
   {$ENDIF}
   {$IFDEF CL_VERSION_1_2}
-    if (fp_config and CL_FP_CORRECTLY_ROUNDED_DIVIDE_SQRT)<>0 then FFPConfigSet := FFPConfigSet+[dfpcCorrectlyRoundedDivideSqrt];
+    if (fp_config and CL_FP_CORRECTLY_ROUNDED_DIVIDE_SQRT)<>0 then
+    begin
+      FFPConfigSet := FFPConfigSet+[dfpcCorrectlyRoundedDivideSqrt];
+      {$IFDEF LOGGING}
+        WriteLog('CL_DEVICE_SINGLE_FP_CONFIG: CL_FP_CORRECTLY_ROUNDED_DIVIDE_SQRT;');
+      {$ENDIF}
+    end;
   {$ENDIF}
 
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_EXECUTION_CAPABILITIES, SizeOf(execution_capabilities),@execution_capabilities,nil);
@@ -1890,8 +1936,20 @@ begin
   {$ENDIF}
   FExecutionCapabilities := [];
   {$IFDEF CL_VERSION_1_0}
-    if (execution_capabilities and CL_EXEC_KERNEL)<>0 then FExecutionCapabilities := FExecutionCapabilities+[decExecKernel];
-    if (execution_capabilities and CL_EXEC_NATIVE_KERNEL)<>0 then FExecutionCapabilities := FExecutionCapabilities+[decExecNativeKernel];
+    if (execution_capabilities and CL_EXEC_KERNEL)<>0 then
+    begin
+      FExecutionCapabilities := FExecutionCapabilities+[decExecKernel];
+      {$IFDEF LOGGING}
+        WriteLog('CL_DEVICE_EXECUTION_CAPABILITIES: CL_EXEC_KERNEL;');
+      {$ENDIF}
+    end;
+    if (execution_capabilities and CL_EXEC_NATIVE_KERNEL)<>0 then
+    begin
+      FExecutionCapabilities := FExecutionCapabilities+[decExecNativeKernel];
+      {$IFDEF LOGGING}
+        WriteLog('CL_DEVICE_EXECUTION_CAPABILITIES: CL_EXEC_NATIVE_KERNEL;');
+      {$ENDIF}
+    end;
   {$ENDIF}
 
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_GLOBAL_MEM_CACHE_TYPE, SizeOf(global_mem_cache_type),@global_mem_cache_type,nil);
@@ -1901,9 +1959,27 @@ begin
   {$ENDIF}
 
   {$IFDEF CL_VERSION_1_0}
-    if (global_mem_cache_type and CL_NONE)<>0 then FGlobalMemCacheType := dmctNone;
-    if (global_mem_cache_type and CL_READ_ONLY_CACHE)<>0 then FGlobalMemCacheType := dmctReadOnlyCache;
-    if (global_mem_cache_type and CL_READ_WRITE_CACHE)<>0 then FGlobalMemCacheType := dmctWriteOnlyCache;
+    if (global_mem_cache_type and CL_NONE)<>0 then
+    begin
+      FGlobalMemCacheType := dmctNone;
+      {$IFDEF LOGGING}
+        WriteLog('CL_DEVICE_GLOBAL_MEM_CACHE_TYPE: CL_NONE;');
+      {$ENDIF}
+    end;
+    if (global_mem_cache_type and CL_READ_ONLY_CACHE)<>0 then
+    begin
+      FGlobalMemCacheType := dmctReadOnlyCache;
+      {$IFDEF LOGGING}
+        WriteLog('CL_DEVICE_GLOBAL_MEM_CACHE_TYPE: CL_READ_ONLY_CACHE;');
+      {$ENDIF}
+    end;
+    if (global_mem_cache_type and CL_READ_WRITE_CACHE)<>0 then
+    begin
+      FGlobalMemCacheType := dmctWriteOnlyCache;
+      {$IFDEF LOGGING}
+        WriteLog('CL_DEVICE_GLOBAL_MEM_CACHE_TYPE: CL_READ_WRITE_CACHE;');
+      {$ENDIF}
+    end;
   {$ENDIF}
 
 
@@ -1914,8 +1990,20 @@ begin
   {$ENDIF}
 
   {$IFDEF CL_VERSION_1_0}
-    if (local_mem_type and CL_LOCAL)<>0 then FLocalMemType := dlmtLocal;
-    if (local_mem_type and CL_GLOBAL)<>0 then FLocalMemType := dlmtGlobal;
+    if (local_mem_type and CL_LOCAL)<>0 then
+    begin
+      FLocalMemType := dlmtLocal;
+      {$IFDEF LOGGING}
+        WriteLog('CL_DEVICE_LOCAL_MEM_TYPE: CL_LOCAL;');
+      {$ENDIF}
+    end;
+    if (local_mem_type and CL_GLOBAL)<>0 then
+    begin
+      FLocalMemType := dlmtGlobal;
+      {$IFDEF LOGGING}
+        WriteLog('CL_DEVICE_LOCAL_MEM_TYPE: CL_GLOBAL;');
+      {$ENDIF}
+    end;
   {$ENDIF}
 
   FContext := TDCLContext.Create(FDevice_id);
@@ -1958,6 +2046,12 @@ function TDCLDevice.CreateImage2D(const Format: PCL_image_format; const Width, H
   const Data: Pointer; const flags: TDCLMemFlagsSet): TDCLImage2D;
 begin
   Result:= TDCLImage2D.Create(Context.FContext,flags,Format,Width,Height,RowPitch,Data);
+end;
+
+function TDCLDevice.CreateFromGLImage2D(const Texture: TGLuint;
+  const Flags: TDCLMemFlagsSet): TDCLImage2D;
+begin
+  Result := TDCLImage2D.CreateFromGL(Context.FContext,Flags,Texture);
 end;
 
 function TDCLDevice.CreateProgram(const FileName: String;
@@ -2054,7 +2148,7 @@ begin
   props[0] := CL_GL_CONTEXT_KHR;
 
   //MacOsX not yet (Andoid hm....)
-  //MAcOSX, Linux, Windows: http://www.dyn-lab.com/articles/cl-gl.html
+  //MacOSX, Linux, Windows: http://www.dyn-lab.com/articles/cl-gl.html
   {$IFDEF WINDOWS}
     props[1] := wglGetCurrentContext();//glXGetCurrentContext(),
     props[2] := CL_WGL_HDC_KHR;
@@ -2096,17 +2190,17 @@ constructor TDCLCommandQueue.Create(const Device_Id: PCL_device_id; const Contex
 var
   props: TCL_command_queue_properties;
 begin
-    props := 0;
-    if cqpOutOfOrderExecModeEnable in properties then
-      props := props or CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE;
-    {$IFDEF PROFILING}
-       props := props or CL_QUEUE_PROFILING_ENABLE;
-    {$ENDIF}
-    FCommandQueue := clCreateCommandQueue(Context,Device_Id,props,@FStatus);
-    {$IFDEF LOGGING}
-      WriteLog('clCreateCommandQueue: '+GetString(FStatus)+';');
-    {$ENDIF}
-    FProperties:=Properties;
+  props := 0;
+  if cqpOutOfOrderExecModeEnable in properties then
+    props := props or CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE;
+  {$IFDEF PROFILING}
+    props := props or CL_QUEUE_PROFILING_ENABLE;
+  {$ENDIF}
+  FCommandQueue := clCreateCommandQueue(Context,Device_Id,props,@FStatus);
+  {$IFDEF LOGGING}
+    WriteLog('clCreateCommandQueue: '+GetString(FStatus)+';');
+  {$ENDIF}
+  FProperties:=Properties;
 end;
 
 { TDCLBuffer }
@@ -2198,10 +2292,7 @@ var
   StartTime,
   EndTime: TCL_ulong;
 {$ENDIF}
-//var
-//  kernel2DWorkGroupSize: TSize_t;
 begin
-  //FStatus := clGetKernelWorkGroupInfo(Kernel.FKernel, Device, CL_KERNEL_WORK_GROUP_SIZE, SizeOf(TSize_t), @kernel2DWorkGroupSize, nil);
   {$IFDEF LOGGING}
     WriteLog('clGetKernelWorkGroupInfo: '+GetString(FStatus)+';');
   {$ENDIF}
@@ -2245,7 +2336,6 @@ constructor TDCLProgram.Create(const Device: PCL_device_id;
   const Source: PPAnsiChar; const Options: PAnsiChar);
 var
   Size: TSize_t;
-  //FBinaries: Array of Char;
 begin
   FProgram := clCreateProgramWithSource(Context,1,Source,nil,@FStatus);
   {$IFDEF LOGGING}
@@ -2278,24 +2368,21 @@ begin
     WriteLog('CL_PROGRAM_SOURCE: '+AnsiString(FSource)+';');
   {$ENDIF}
 
-  FStatus := clGetProgramInfo(FProgram,CL_PROGRAM_BINARY_SIZES,0,nil,@FBinarySizesCount);
+  FStatus := clGetProgramInfo(FProgram,CL_PROGRAM_BINARY_SIZES,SizeOf(FBinarySizes),@FBinarySizes,nil);
   {$IFDEF LOGGING}
     WriteLog('clGetProgramInfo: '+GetString(FStatus)+';');
   {$ENDIF}
-  SetLength(FBinarySizes,FBinarySizesCount);
-  FStatus := clGetProgramInfo(FProgram,CL_PROGRAM_BINARY_SIZES,SizeOf(FBinarySizes),@FBinarySizes[0],nil);
+  {$IFDEF LOGGING}
+    WriteLog('CL_PROGRAM_BINARY_SIZES: '+IntToStr(FBinarySizes)+';');
+  {$ENDIF}
+  SetLength(FBinaries,1,FBinarySizes);
+  FStatus := clGetProgramInfo(FProgram,CL_PROGRAM_BINARIES,SizeOf(FBinaries),@FBinaries[0],nil);
   {$IFDEF LOGGING}
     WriteLog('clGetProgramInfo: '+GetString(FStatus)+';');
   {$ENDIF}
-
-
-  (*  //Not yet
-  FStatus := clGetProgramInfo(FProgram,CL_PROGRAM_BINARIES,0,nil,@Size);
-  SetLength(FBinaries,Size);
-  FStatus := clGetProgramInfo(FProgram,CL_PROGRAM_BINARIES,Size,@FBinaries[0],nil);
-  Writeln(String(FBinaries));
-  *)
-
+  {$IFDEF LOGGING}
+    WriteLog('CL_PROGRAM_BINARIES: '+AnsiString(FBinaries[0])+';');
+  {$ENDIF}
 end;
 
 function TDCLProgram.CreateKernel(const KernelName: PAnsiChar): TDCLKernel;
@@ -2310,14 +2397,22 @@ begin
     WriteLog('clReleaseProgram: '+GetString(FStatus)+';');
   {$ENDIF}
   FSource := '';
-  SetLength(FBinarySizes,0);
+  FBinarySizes := 0;
+  SetLength(FBinaries,0,0);
   inherited Free;
 end;
 
-function TDCLProgram.GetBinarySizes(const Index: TSize_t): TSize_t;
+procedure TDCLProgram.SaveToFile(const FileName: AnsiString);
+var
+  F: File;
 begin
-  if (Index<FBinarySizesCount)then Result := FBinarySizes[Index]
-  else Result:=0;
+  try
+    AssignFile(F,FileName);
+    Rewrite(F,1);
+    BlockWrite(F,FBinaries[0],FBinarySizes);
+  finally
+    CloseFile(F);
+  end;
 end;
 
 { TDCLKernel }
@@ -2543,9 +2638,25 @@ begin
   {$ENDIF}
 end;
 
+procedure TDCLCommandQueue.AcquireGLObject(const Image2D: TDCLImage2D);
+begin
+  FStatus := clEnqueueAcquireGLObjects(FCommandQueue, 1, @Image2D.FMem, 0,nil,nil);
+  {$IFDEF LOGGING}
+    WriteLog('clEnqueueAcquireGLObjects: '+GetString(FStatus)+';');
+  {$ENDIF}
+end;
+
 procedure TDCLCommandQueue.ReleaseGLObject(const Buffer: TDCLBuffer);
 begin
   FStatus := clEnqueueReleaseGLObjects(FCommandQueue, 1, @Buffer.FMem, 0,nil,nil);
+  {$IFDEF LOGGING}
+    WriteLog('clEnqueueReleaseGLObjects: '+GetString(FStatus)+';');
+  {$ENDIF}
+end;
+
+procedure TDCLCommandQueue.ReleaseGLObject(const Image2D: TDCLImage2D);
+begin
+  FStatus := clEnqueueReleaseGLObjects(FCommandQueue, 1, @Image2D.FMem, 0,nil,nil);
   {$IFDEF LOGGING}
     WriteLog('clEnqueueReleaseGLObjects: '+GetString(FStatus)+';');
   {$ENDIF}
@@ -2576,6 +2687,46 @@ begin
   {$ENDIF}
 end;
 
+constructor TDCLImage2D.CreateFromGL(const Context: PCL_context;
+  const Flags: TDCLMemFlagsSet; const Texture: TGLuint);
+var
+  fgs: TCL_mem_flags;
+begin
+  inherited Create();
+  fgs:=0;
+  if mfReadWrite in flags then fgs:=fgs or CL_MEM_READ_WRITE;
+  if mfWriteOnly in flags then fgs:=fgs or CL_MEM_WRITE_ONLY;
+  if mfReadOnly in flags then fgs:=fgs or CL_MEM_READ_ONLY;
+  if mfUseHostPtr in flags then fgs:=fgs or CL_MEM_USE_HOST_PTR;
+  if mfAllocHostPtr in flags then fgs:=fgs or CL_MEM_ALLOC_HOST_PTR;
+  if mfCopyHostPtr in flags then fgs:=fgs or CL_MEM_COPY_HOST_PTR;
+
+  FMem := clCreateFromGLTexture2D(Context, fgs, GL_TEXTURE_2D, 0, Texture, @FStatus);
+  {$IFDEF LOGGING}
+    WriteLog('clCreateFromGLTexture2D: '+GetString(FStatus)+';');
+  {$ENDIF}
+
+  FStatus := clGetImageInfo(FMem,CL_IMAGE_WIDTH,SizeOf(FWidth),@FWidth,nil);
+  {$IFDEF LOGGING}
+    WriteLog('clGetImageInfo: '+GetString(FStatus)+';');
+    WriteLog('CL_IMAGE_WIDTH: '+IntToStr(FWidth)+';');
+  {$ENDIF}
+
+  FStatus := clGetImageInfo(FMem,CL_IMAGE_HEIGHT,SizeOf(FHeight),@FHeight,nil);
+  {$IFDEF LOGGING}
+    WriteLog('clGetImageInfo: '+GetString(FStatus)+';');
+    WriteLog('CL_IMAGE_HEIGHT: '+IntToStr(FHeight)+';');
+  {$ENDIF}
+
+  FStatus := clGetImageInfo(FMem,CL_IMAGE_FORMAT,SizeOf(FFormat),@FFormat,nil);
+  {$IFDEF LOGGING}
+    WriteLog('clGetImageInfo: '+GetString(FStatus)+';');
+    WriteLog('CL_IMAGE_FORMAT_channel_order: '+IntToStr(FFormat.Image_channel_order)+';');
+    WriteLog('CL_IMAGE_FORMAT_Image_channel_data_type: '+IntToStr(FFormat.Image_channel_data_type)+';');
+  {$ENDIF}
+
+end;
+
 procedure TDCLImage2D.Free;
 begin
   FStatus := clReleaseMemObject(FMem);
@@ -2586,8 +2737,8 @@ begin
 end;
 
 
-
 {$IFDEF LOGGING}
+
 initialization
   AssignFile(DCLFileLOG,ExtractFilePath(ParamStr(0))+'DELPHI_LOG.log');
   Rewrite(DCLFileLOG);
