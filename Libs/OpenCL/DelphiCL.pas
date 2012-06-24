@@ -31,6 +31,20 @@ uses
   dglOpenGL,
   CL_platform;
 
+const
+  DCL_BUILD_OPTION_SINGLE_PRECISION_CONSTANT = '-cl-single-precision-constant ';
+  DCL_BUILD_OPTION_DENORMS_ARE_ZERO          = '-cl-denorms-are-zero ';
+  DCL_BUILD_OPTION_OPT_DISABLE               = '-cl-opt-disable ';
+  DCL_BUILD_OPTION_STRICT_ALIASING           = '-cl-strict-aliasing ';
+  DCL_BUILD_OPTION_MAD_ENABLE                = '-cl-mad-enable ';
+  DCL_BUILD_OPTION_NO_SIGNED_ZEROS           = '-cl-no-signed-zeros ';
+  DCL_BUILD_OPTION_UNSAFE_MATH_OPTIMIZATIONS = '-cl-unsafe-math-optimizations ';
+  DCL_BUILD_OPTION_FINITE_MATH_ONLY          = '-cl-finite-math-only ';
+  DCL_BUILD_OPTION_FAST_RELAXED_MATH         = '-cl-fast-relaxed-math ';
+  DCL_BUILD_OPTION_W                         = '-w ';
+  DCL_BUILD_OPTION_WERROR                    = '-Werror ';
+  DCL_BUILD_OPTION_STD                       = '-cl-std=';
+
 {$IFDEF LOGGING}
 var
   DCLFileLOG: TextFile;
@@ -42,6 +56,7 @@ type
   TDCLMemFlags = (mfReadWrite, mfWriteOnly, mfReadOnly, mfUseHostPtr, mfAllocHostPtr, mfCopyHostPtr);
   TDCLMemFlagsSet = set of TDCLMemFlags;
 
+  PDCLBuffer = ^TDCLBuffer;
   TDCLBuffer = class
   private
     FMem: PCL_mem;
@@ -51,11 +66,12 @@ type
     constructor Create(const Context: PCL_context; const Flags: TDCLMemFlagsSet; const Size: TSize_t; const Data: Pointer=nil);
     constructor CreateFromGL(const Context: PCL_context; const Flags: TDCLMemFlagsSet; const Data: Pointer=nil);
   public
-    procedure Free();
+    destructor Destroy();override;
     property Size: TSize_t read FSize;
     property Status: TCL_int read FStatus;
   end;
 
+  PDCLImage2D = ^TDCLImage2D;
   TDCLImage2D = class
   private
     FMem: PCL_mem;
@@ -68,7 +84,7 @@ type
     constructor Create(const Context: PCL_context; const Flags: TDCLMemFlagsSet; const Format: PCL_image_format; const Width, Height: TSize_t; const RowPitch: TSize_t = 0; const Data: Pointer = nil);
     constructor CreateFromGL(const Context: PCL_context; const Flags: TDCLMemFlagsSet; const Texture: TGLuint);
   public
-    procedure Free();
+    destructor Destroy(); override;
     property Width: TSize_t read FWidth;
     property Height: TSize_t read FHeight;
     property RowPitch: TSize_t read FRowPitch;
@@ -78,6 +94,7 @@ type
   TDCLCommandQueueProperties = (cqpOutOfOrderExecModeEnable);
   TDCLCommandQueuePropertiesSet = set of TDCLCommandQueueProperties;
 
+  PDCLKernel = ^TDCLKernel;
   TDCLKernel = class
   private
     FKernel: PCL_kernel;
@@ -93,9 +110,10 @@ type
     procedure SetArg(const Index: TCL_uint; const Size: TSize_t; const Value: Pointer); overload;
     procedure SetArg(const Index: TCL_uint; const Value: TDCLBuffer); overload;
     procedure SetArg(const Index: TCL_uint; const Value: TDCLImage2D); overload;
-    procedure Free();
+    destructor Destroy(); override;
   end;
 
+  PDCLCommandQueue = ^TDCLCommandQueue;
   TDCLCommandQueue = class
   private
     FCommandQueue: PCL_command_queue;
@@ -125,10 +143,12 @@ type
     {$IFDEF PROFILING}
     property ExecuteTime: TCL_ulong read FExecuteTime;
     {$ENDIF}
-    procedure Free();
+    destructor Destroy(); override;
   end;
 
   TArraySize_t = Array of TSize_t;
+
+  PDCLProgram = ^TDCLProgram;
   TDCLProgram = class
   private
     FProgram: PCL_program;
@@ -146,9 +166,10 @@ type
     property Log: AnsiString read FLog;
     function CreateKernel(const KernelName: PAnsiChar): TDCLKernel;
     procedure SaveToFile(const FileName: AnsiString);
-    procedure Free();
+    destructor Destroy(); override;
   end;
 
+  PDCLContext = ^TDCLContext;
   TDCLContext = class
   private
     FContext: PCL_context;
@@ -161,7 +182,7 @@ type
     constructor CreateGL(Device_id: PCL_device_id);
     property Status: TCL_int read FStatus;
     property NumDevices: TCL_uint read FNumDevices;
-    procedure Free();
+    destructor Destroy(); override;
   end;
 
   TDCLDeviceFPConfig = ({$IFDEF CL_VERSION_1_0}
@@ -187,6 +208,7 @@ type
                             dlmtLocal,dlmtGlobal 
                             {$ENDIF});
 
+  PDCLDevice = ^TDCLDevice;
   TDCLDevice = class
   //private
     FDevice_id: PCL_device_id;
@@ -367,9 +389,10 @@ type
 
     property FPConfig[const Index: TDCLDeviceFPConfig]: Boolean read IsPresentInFPConfig;
     property GlobalMemCacheType: TDCLDeviceMemCacheType read FGlobalMemCacheType;
-    procedure Free();
+    destructor Destroy(); override;
   end;
 
+  PDCLPlatform = ^TDCLPlatform;
   TDCLPlatform = class
   private
     FPlatform_id: PCL_platform_id;
@@ -391,36 +414,36 @@ type
 
     FExtensionsCount: TSize_t;
     FExtensions: Array of AnsiString;
-    function GetDevice(Index: TCL_uint): TDCLDevice;
-    function GetCPU(Index: TCL_uint): TDCLDevice;
-    function GetGPU(Index: TCL_uint): TDCLDevice;
-    function GetAccelerator(Index: TCL_uint): TDCLDevice;
+    function GetDevice(Index: TCL_uint): PDCLDevice;
+    function GetCPU(Index: TCL_uint): PDCLDevice;
+    function GetGPU(Index: TCL_uint): PDCLDevice;
+    function GetAccelerator(Index: TCL_uint): PDCLDevice;
     function GetExtensions(Index: TSize_t): AnsiString;
     function IsPresentExtension(const ExtensionName: AnsiString): Boolean;
 
-    function GetDeviceWithMaxClockFrequency(): TDCLDevice;
-    function GetDeviceWithMaxComputeUnits(): TDCLDevice;
+    function GetDeviceWithMaxClockFrequency(): PDCLDevice;
+    function GetDeviceWithMaxComputeUnits(): PDCLDevice;
 
-    function GetDeviceWithMaxGlobalMemCacheLineSize(): TDCLDevice;
-    function GetDeviceWithMaxGlobalMemCacheSize(): TDCLDevice;
-    function GetDeviceWithMaxGlobalMemSize(): TDCLDevice;
+    function GetDeviceWithMaxGlobalMemCacheLineSize(): PDCLDevice;
+    function GetDeviceWithMaxGlobalMemCacheSize(): PDCLDevice;
+    function GetDeviceWithMaxGlobalMemSize(): PDCLDevice;
 
-    function GetDeviceWithMaxImage2DWidth(): TDCLDevice;
-    function GetDeviceWithMaxImage2DHeight(): TDCLDevice;
-    function GetDeviceWithMaxImage3DWidth(): TDCLDevice;
-    function GetDeviceWithMaxImage3DHeight(): TDCLDevice;
-    function GetDeviceWithMaxImage3DDepth(): TDCLDevice;
+    function GetDeviceWithMaxImage2DWidth(): PDCLDevice;
+    function GetDeviceWithMaxImage2DHeight(): PDCLDevice;
+    function GetDeviceWithMaxImage3DWidth(): PDCLDevice;
+    function GetDeviceWithMaxImage3DHeight(): PDCLDevice;
+    function GetDeviceWithMaxImage3DDepth(): PDCLDevice;
 
-    function GetDeviceWithMaxLocalMemSize(): TDCLDevice;
-    function GetDeviceWithMaxConstantArgs(): TDCLDevice;
-    function GetDeviceWithMaxConstantBufferSize(): TDCLDevice;
-    function GetDeviceWithMaxMemAllocSize(): TDCLDevice;
-    function GetDeviceWithMaxParameterSize(): TDCLDevice;
-    function GetDeviceWithMaxReadImageArgs(): TDCLDevice;
-    function GetDeviceWithMaxSamplers(): TDCLDevice;
-    function GetDeviceWithMaxWorkGroupSize(): TDCLDevice;
-    function GetDeviceWithMaxWorkItemDimensions(): TDCLDevice;
-    function GetDeviceWithMaxWriteImageArgs(): TDCLDevice;
+    function GetDeviceWithMaxLocalMemSize(): PDCLDevice;
+    function GetDeviceWithMaxConstantArgs(): PDCLDevice;
+    function GetDeviceWithMaxConstantBufferSize(): PDCLDevice;
+    function GetDeviceWithMaxMemAllocSize(): PDCLDevice;
+    function GetDeviceWithMaxParameterSize(): PDCLDevice;
+    function GetDeviceWithMaxReadImageArgs(): PDCLDevice;
+    function GetDeviceWithMaxSamplers(): PDCLDevice;
+    function GetDeviceWithMaxWorkGroupSize(): PDCLDevice;
+    function GetDeviceWithMaxWorkItemDimensions(): PDCLDevice;
+    function GetDeviceWithMaxWriteImageArgs(): PDCLDevice;
   public
     constructor Create(Platform_id: PCL_platform_id);
     property Profile: AnsiString read FProfile;
@@ -435,49 +458,50 @@ type
     property AcceleratorCount: TCL_uint read FAcceleratorCount;
 
     property Status: TCL_int read FStatus;
-    property Devices[Index: TCL_uint]: TDCLDevice read GetDevice;
-    property CPUs[Index: TCL_uint]: TDCLDevice read GetCPU;
-    property GPUs[Index: TCL_uint]: TDCLDevice read GetGPU;
-    property Accelerators[Index: TCL_uint]: TDCLDevice read GetAccelerator;
+    property Devices[Index: TCL_uint]: PDCLDevice read GetDevice;
+    property CPUs[Index: TCL_uint]: PDCLDevice read GetCPU;
+    property GPUs[Index: TCL_uint]: PDCLDevice read GetGPU;
+    property Accelerators[Index: TCL_uint]: PDCLDevice read GetAccelerator;
     property ExtensionsCount: TSize_t read FExtensionsCount;
     property Extensions[Index: TSize_t]: AnsiString read GetExtensions;
     property IsSupportedExtension[const Index: AnsiString]: Boolean read IsPresentExtension;
 
-    property DeviceWithMaxClockFrequency: TDCLDevice read GetDeviceWithMaxClockFrequency;
-    property DeviceWithMaxComputeUnits: TDCLDevice read GetDeviceWithMaxComputeUnits;
-    property DeviceWithMaxGlobalMemCacheLineSize: TDCLDevice read GetDeviceWithMaxGlobalMemCacheLineSize;
-    property DeviceWithMaxGlobalMemCacheSize: TDCLDevice read GetDeviceWithMaxGlobalMemCacheSize;
-    property DeviceWithMaxGlobalMemSize: TDCLDevice read GetDeviceWithMaxGlobalMemSize;
-    property DeviceWithMaxImage2DWidth: TDCLDevice read GetDeviceWithMaxImage2DWidth;
-    property DeviceWithMaxImage2DHeight: TDCLDevice read GetDeviceWithMaxImage2DHeight;
-    property DeviceWithMaxImage3DWidth: TDCLDevice read GetDeviceWithMaxImage3DWidth;
-    property DeviceWithMaxImage3DHeight: TDCLDevice read GetDeviceWithMaxImage3DHeight;
-    property DeviceWithMaxImage3DDepth: TDCLDevice read GetDeviceWithMaxImage3DDepth;
-    property DeviceWithMaxLocalMemSize: TDCLDevice read GetDeviceWithMaxLocalMemSize;
-    property DeviceWithMaxConstantArgs: TDCLDevice read GetDeviceWithMaxConstantArgs;
-    property DeviceWithMaxConstantBufferSize: TDCLDevice read GetDeviceWithMaxConstantBufferSize;
-    property DeviceWithMaxMemAllocSize: TDCLDevice read GetDeviceWithMaxMemAllocSize;
-    property DeviceWithMaxParameterSize: TDCLDevice read GetDeviceWithMaxParameterSize;
-    property DeviceWithMaxReadImageArgs: TDCLDevice read GetDeviceWithMaxReadImageArgs;
-    property DeviceWithMaxSamplers: TDCLDevice read GetDeviceWithMaxSamplers;
-    property DeviceWithMaxWorkGroupSize: TDCLDevice read GetDeviceWithMaxWorkGroupSize;
-    property DeviceWithMaxWorkItemDimensions: TDCLDevice read GetDeviceWithMaxWorkItemDimensions;
-    property DeviceWithMaxWriteImageArgs: TDCLDevice read GetDeviceWithMaxWriteImageArgs;
-    procedure Free();
+    property DeviceWithMaxClockFrequency: PDCLDevice read GetDeviceWithMaxClockFrequency;
+    property DeviceWithMaxComputeUnits: PDCLDevice read GetDeviceWithMaxComputeUnits;
+    property DeviceWithMaxGlobalMemCacheLineSize: PDCLDevice read GetDeviceWithMaxGlobalMemCacheLineSize;
+    property DeviceWithMaxGlobalMemCacheSize: PDCLDevice read GetDeviceWithMaxGlobalMemCacheSize;
+    property DeviceWithMaxGlobalMemSize: PDCLDevice read GetDeviceWithMaxGlobalMemSize;
+    property DeviceWithMaxImage2DWidth: PDCLDevice read GetDeviceWithMaxImage2DWidth;
+    property DeviceWithMaxImage2DHeight: PDCLDevice read GetDeviceWithMaxImage2DHeight;
+    property DeviceWithMaxImage3DWidth: PDCLDevice read GetDeviceWithMaxImage3DWidth;
+    property DeviceWithMaxImage3DHeight: PDCLDevice read GetDeviceWithMaxImage3DHeight;
+    property DeviceWithMaxImage3DDepth: PDCLDevice read GetDeviceWithMaxImage3DDepth;
+    property DeviceWithMaxLocalMemSize: PDCLDevice read GetDeviceWithMaxLocalMemSize;
+    property DeviceWithMaxConstantArgs: PDCLDevice read GetDeviceWithMaxConstantArgs;
+    property DeviceWithMaxConstantBufferSize: PDCLDevice read GetDeviceWithMaxConstantBufferSize;
+    property DeviceWithMaxMemAllocSize: PDCLDevice read GetDeviceWithMaxMemAllocSize;
+    property DeviceWithMaxParameterSize: PDCLDevice read GetDeviceWithMaxParameterSize;
+    property DeviceWithMaxReadImageArgs: PDCLDevice read GetDeviceWithMaxReadImageArgs;
+    property DeviceWithMaxSamplers: PDCLDevice read GetDeviceWithMaxSamplers;
+    property DeviceWithMaxWorkGroupSize: PDCLDevice read GetDeviceWithMaxWorkGroupSize;
+    property DeviceWithMaxWorkItemDimensions: PDCLDevice read GetDeviceWithMaxWorkItemDimensions;
+    property DeviceWithMaxWriteImageArgs: PDCLDevice read GetDeviceWithMaxWriteImageArgs;
+    destructor Destroy(); override;
   end;
 
+  PDCLPlatforms = ^TDCLPlatforms;
   TDCLPlatforms = class
   private
     FPlatforms: Array of TDCLPlatform;
     FPlatformCount: TCL_uint;
     FStatus: TCL_int;
-    function GetPlatform(Index: TCL_uint): TDCLPlatform;
+    function GetPlatform(Index: TCL_uint): PDCLPlatform;
   public
     constructor Create();
     property PlatformCount: TCL_uint read FPlatformCount;
     property Status: TCL_int read FStatus;
-    property Platforms[Index: TCL_uint]: TDCLPlatform read GetPlatform;
-    procedure Free();
+    property Platforms[Index: TCL_uint]: PDCLPlatform read GetPlatform;
+    destructor Destroy(); override;
   end;
 
 implementation
@@ -503,10 +527,12 @@ begin
   end;
 end;
 
+{// Osak Alexey for 64 bit value
 function IntToStr( Value : Integer ) : AnsiString;
 begin
   Str( Value, Result );
 end;
+}
 
 {$IFDEF LOGGING}
   procedure WriteLog(const Str: AnsiString);
@@ -549,21 +575,22 @@ begin
   end;
 end;
 
-procedure TDCLPlatforms.Free;
+destructor TDCLPlatforms.Destroy;
 var
   i: Integer;
 begin
   for i:=0 to FPlatformCount-1 do
   begin
-    FPlatforms[i].Free();
+    //FPlatforms[i].Free();
+    FreeAndNil(FPlatforms[i]);
   end;
   SetLength(FPlatforms,0);
-  inherited Free();
+  inherited;
 end;
 
-function TDCLPlatforms.GetPlatform(Index: TCL_uint): TDCLPlatform;
+function TDCLPlatforms.GetPlatform(Index: TCL_uint): PDCLPlatform;
 begin
-  if (Index<FPlatformCount)then Result := FPlatforms[Index]
+  if (Index<FPlatformCount)then Result := @FPlatforms[Index]
   else Result := nil;
 end;
 
@@ -711,19 +738,26 @@ begin
         FAccelerators[FAcceleratorCount-1] := i;
       end;
     end;
+    SetLength(devices,0);
   end;
 
 end;
 
-procedure TDCLPlatform.Free;
+destructor TDCLPlatform.Destroy;
 var
   i: integer;
 begin
   SetLength(FExtensions,0);
   FExtensionsString := '';
+  FProfile := '';
+  FVersion := '';
+  FName := '';
+  FVendor := '';
+
   for i:=0 to FDeviceCount-1 do
   begin
-    FDevices[i].Free();
+    FreeAndNil(FDevices[i]);
+    //FDevices[i].Free();
   end;
 
   SetLength(FCPUs,0);
@@ -731,28 +765,28 @@ begin
   SetLength(FAccelerators,0);
 
   SetLength(FDevices,0);
-  inherited Free();
+  inherited;
 end;
 
-function TDCLPlatform.GetAccelerator(Index: TCL_uint): TDCLDevice;
+function TDCLPlatform.GetAccelerator(Index: TCL_uint): PDCLDevice;
 begin
-  if Index<FAcceleratorCount then Result := FDevices[FAccelerators[Index]]
+  if Index<FAcceleratorCount then Result := @FDevices[FAccelerators[Index]]
   else Result := nil;
 end;
 
-function TDCLPlatform.GetCPU(Index: TCL_uint): TDCLDevice;
+function TDCLPlatform.GetCPU(Index: TCL_uint): PDCLDevice;
 begin
-  if Index<FCPUCount then Result := FDevices[FCPUs[Index]]
+  if Index<FCPUCount then Result := @FDevices[FCPUs[Index]]
   else Result := nil;
 end;
 
-function TDCLPlatform.GetDevice(Index: TCL_uint): TDCLDevice;
+function TDCLPlatform.GetDevice(Index: TCL_uint): PDCLDevice;
 begin
-  if (Index<FDeviceCount)then Result := FDevices[Index]
+  if (Index<FDeviceCount)then Result := @FDevices[Index]
   else Result := nil;
 end;
 
-function TDCLPlatform.GetDeviceWithMaxClockFrequency: TDCLDevice;
+function TDCLPlatform.GetDeviceWithMaxClockFrequency: PDCLDevice;
   function GetParameterDevice(const Device: TDCLDevice): TCL_uint;
   begin
     Result := Device.MaxClockFrequency;
@@ -777,10 +811,10 @@ begin
       MaxValuePos := i;
     end;
   end;
-  Result := FDevices[MaxValuePos];
+  Result := @FDevices[MaxValuePos];
 end;
 
-function TDCLPlatform.GetDeviceWithMaxComputeUnits: TDCLDevice;
+function TDCLPlatform.GetDeviceWithMaxComputeUnits: PDCLDevice;
   function GetParameterDevice(const Device: TDCLDevice): TCL_uint;
   begin
     Result := Device.MaxComputeUnits;
@@ -805,10 +839,10 @@ begin
       MaxValuePos := i;
     end;
   end;
-  Result := FDevices[MaxValuePos];
+  Result := @FDevices[MaxValuePos];
 end;
 
-function TDCLPlatform.GetDeviceWithMaxConstantArgs: TDCLDevice;
+function TDCLPlatform.GetDeviceWithMaxConstantArgs: PDCLDevice;
   function GetParameterDevice(const Device: TDCLDevice): TCL_uint;
   begin
     Result := Device.MaxConstantArgs;
@@ -833,10 +867,10 @@ begin
       MaxValuePos := i;
     end;
   end;
-  Result := FDevices[MaxValuePos];
+  Result := @FDevices[MaxValuePos];
 end;
 
-function TDCLPlatform.GetDeviceWithMaxConstantBufferSize: TDCLDevice;
+function TDCLPlatform.GetDeviceWithMaxConstantBufferSize: PDCLDevice;
   function GetParameterDevice(const Device: TDCLDevice): TCL_ulong;
   begin
     Result := Device.MaxConstantBufferSize;
@@ -861,10 +895,10 @@ begin
       MaxValuePos := i;
     end;
   end;
-  Result := FDevices[MaxValuePos];
+  Result := @FDevices[MaxValuePos];
 end;
 
-function TDCLPlatform.GetDeviceWithMaxGlobalMemCacheLineSize: TDCLDevice;
+function TDCLPlatform.GetDeviceWithMaxGlobalMemCacheLineSize: PDCLDevice;
   function GetParameterDevice(const Device: TDCLDevice): TCL_uint;
   begin
     Result := Device.GlobalMemCacheLineSize;
@@ -889,10 +923,10 @@ begin
       MaxValuePos := i;
     end;
   end;
-  Result := FDevices[MaxValuePos];
+  Result := @FDevices[MaxValuePos];
 end;
 
-function TDCLPlatform.GetDeviceWithMaxGlobalMemCacheSize: TDCLDevice;
+function TDCLPlatform.GetDeviceWithMaxGlobalMemCacheSize: PDCLDevice;
   function GetParameterDevice(const Device: TDCLDevice): TCL_ulong;
   begin
     Result := Device.GlobalMemCacheSize;
@@ -917,10 +951,10 @@ begin
       MaxValuePos := i;
     end;
   end;
-  Result := FDevices[MaxValuePos];
+  Result := @FDevices[MaxValuePos];
 end;
 
-function TDCLPlatform.GetDeviceWithMaxGlobalMemSize: TDCLDevice;
+function TDCLPlatform.GetDeviceWithMaxGlobalMemSize: PDCLDevice;
   function GetParameterDevice(const Device: TDCLDevice): TCL_ulong;
   begin
     Result := Device.GlobalMemSize;
@@ -945,10 +979,10 @@ begin
       MaxValuePos := i;
     end;
   end;
-  Result := FDevices[MaxValuePos];
+  Result := @FDevices[MaxValuePos];
 end;
 
-function TDCLPlatform.GetDeviceWithMaxImage2DHeight: TDCLDevice;
+function TDCLPlatform.GetDeviceWithMaxImage2DHeight: PDCLDevice;
   function GetParameterDevice(const Device: TDCLDevice): TSize_t;
   begin
     Result := Device.Image2DMaxHeight;
@@ -973,10 +1007,10 @@ begin
       MaxValuePos := i;
     end;
   end;
-  Result := FDevices[MaxValuePos];
+  Result := @FDevices[MaxValuePos];
 end;
 
-function TDCLPlatform.GetDeviceWithMaxImage2DWidth: TDCLDevice;
+function TDCLPlatform.GetDeviceWithMaxImage2DWidth: PDCLDevice;
   function GetParameterDevice(const Device: TDCLDevice): TSize_t;
   begin
     Result := Device.Image2DMaxWidth;
@@ -1001,10 +1035,10 @@ begin
       MaxValuePos := i;
     end;
   end;
-  Result := FDevices[MaxValuePos];
+  Result := @FDevices[MaxValuePos];
 end;
 
-function TDCLPlatform.GetDeviceWithMaxImage3DDepth: TDCLDevice;
+function TDCLPlatform.GetDeviceWithMaxImage3DDepth: PDCLDevice;
   function GetParameterDevice(const Device: TDCLDevice): TSize_t;
   begin
     Result := Device.Image3DMaxDepth;
@@ -1029,10 +1063,10 @@ begin
       MaxValuePos := i;
     end;
   end;
-  Result := FDevices[MaxValuePos];
+  Result := @FDevices[MaxValuePos];
 end;
 
-function TDCLPlatform.GetDeviceWithMaxImage3DHeight: TDCLDevice;
+function TDCLPlatform.GetDeviceWithMaxImage3DHeight: PDCLDevice;
   function GetParameterDevice(const Device: TDCLDevice): TSize_t;
   begin
     Result := Device.Image3DMaxHeight;
@@ -1057,10 +1091,10 @@ begin
       MaxValuePos := i;
     end;
   end;
-  Result := FDevices[MaxValuePos];
+  Result := @FDevices[MaxValuePos];
 end;
 
-function TDCLPlatform.GetDeviceWithMaxImage3DWidth: TDCLDevice;
+function TDCLPlatform.GetDeviceWithMaxImage3DWidth: PDCLDevice;
   function GetParameterDevice(const Device: TDCLDevice): TSize_t;
   begin
     Result := Device.Image3DMaxWidth;
@@ -1085,10 +1119,10 @@ begin
       MaxValuePos := i;
     end;
   end;
-  Result := FDevices[MaxValuePos];
+  Result := @FDevices[MaxValuePos];
 end;
 
-function TDCLPlatform.GetDeviceWithMaxLocalMemSize: TDCLDevice;
+function TDCLPlatform.GetDeviceWithMaxLocalMemSize: PDCLDevice;
   function GetParameterDevice(const Device: TDCLDevice): TCL_ulong;
   begin
     Result := Device.LocalMemSize;
@@ -1113,10 +1147,10 @@ begin
       MaxValuePos := i;
     end;
   end;
-  Result := FDevices[MaxValuePos];
+  Result := @FDevices[MaxValuePos];
 end;
 
-function TDCLPlatform.GetDeviceWithMaxMemAllocSize: TDCLDevice;
+function TDCLPlatform.GetDeviceWithMaxMemAllocSize: PDCLDevice;
   function GetParameterDevice(const Device: TDCLDevice): TCL_ulong;
   begin
     Result := Device.MaxMemAllocSize;
@@ -1141,10 +1175,10 @@ begin
       MaxValuePos := i;
     end;
   end;
-  Result := FDevices[MaxValuePos];
+  Result := @FDevices[MaxValuePos];
 end;
 
-function TDCLPlatform.GetDeviceWithMaxParameterSize: TDCLDevice;
+function TDCLPlatform.GetDeviceWithMaxParameterSize: PDCLDevice;
   function GetParameterDevice(const Device: TDCLDevice): TSize_t;
   begin
     Result := Device.MaxParameterSize;
@@ -1169,10 +1203,10 @@ begin
       MaxValuePos := i;
     end;
   end;
-  Result := FDevices[MaxValuePos];
+  Result := @FDevices[MaxValuePos];
 end;
 
-function TDCLPlatform.GetDeviceWithMaxReadImageArgs: TDCLDevice;
+function TDCLPlatform.GetDeviceWithMaxReadImageArgs: PDCLDevice;
   function GetParameterDevice(const Device: TDCLDevice): TCL_uint;
   begin
     Result := Device.MaxReadImageArgs;
@@ -1197,10 +1231,10 @@ begin
       MaxValuePos := i;
     end;
   end;
-  Result := FDevices[MaxValuePos];
+  Result := @FDevices[MaxValuePos];
 end;
 
-function TDCLPlatform.GetDeviceWithMaxSamplers: TDCLDevice;
+function TDCLPlatform.GetDeviceWithMaxSamplers: PDCLDevice;
   function GetParameterDevice(const Device: TDCLDevice): TCL_uint;
   begin
     Result := Device.MaxSamplers;
@@ -1225,10 +1259,10 @@ begin
       MaxValuePos := i;
     end;
   end;
-  Result := FDevices[MaxValuePos];
+  Result := @FDevices[MaxValuePos];
 end;
 
-function TDCLPlatform.GetDeviceWithMaxWorkGroupSize: TDCLDevice;
+function TDCLPlatform.GetDeviceWithMaxWorkGroupSize: PDCLDevice;
   function GetParameterDevice(const Device: TDCLDevice): TSize_t;
   begin
     Result := Device.MaxWorkGroupSize;
@@ -1253,10 +1287,10 @@ begin
       MaxValuePos := i;
     end;
   end;
-  Result := FDevices[MaxValuePos];
+  Result := @FDevices[MaxValuePos];
 end;
 
-function TDCLPlatform.GetDeviceWithMaxWorkItemDimensions: TDCLDevice;
+function TDCLPlatform.GetDeviceWithMaxWorkItemDimensions: PDCLDevice;
   function GetParameterDevice(const Device: TDCLDevice): TCL_uint;
   begin
     Result := Device.MaxWorkItemDimensions;
@@ -1281,10 +1315,10 @@ begin
       MaxValuePos := i;
     end;
   end;
-  Result := FDevices[MaxValuePos];
+  Result := @FDevices[MaxValuePos];
 end;
 
-function TDCLPlatform.GetDeviceWithMaxWriteImageArgs: TDCLDevice;
+function TDCLPlatform.GetDeviceWithMaxWriteImageArgs: PDCLDevice;
   function GetParameterDevice(const Device: TDCLDevice): TCL_uint;
   begin
     Result := Device.MaxWriteImageArgs;
@@ -1309,7 +1343,7 @@ begin
       MaxValuePos := i;
     end;
   end;
-  Result := FDevices[MaxValuePos];
+  Result := @FDevices[MaxValuePos];
 end;
 
 function TDCLPlatform.GetExtensions(Index: TSize_t): AnsiString;
@@ -1318,9 +1352,9 @@ begin
   else Result := '';
 end;
 
-function TDCLPlatform.GetGPU(Index: TCL_uint): TDCLDevice;
+function TDCLPlatform.GetGPU(Index: TCL_uint): PDCLDevice;
 begin
-  if Index<FGPUCount then Result := FDevices[FGPUs[Index]]
+  if Index<FGPUCount then Result := @FDevices[FGPUs[Index]]
   else Result := nil;
 end;
 
@@ -2073,12 +2107,18 @@ begin
   Result := CreateProgram(@PAnsiString(Source),Options);
 end;
 
-procedure TDCLDevice.Free;
+destructor TDCLDevice.Destroy;
 begin
-  FContext.Free();
+  FreeAndNil(FContext);
   SetLength(FExtensions,0);
-  FExtensionsString:='';
-  inherited Free();
+  FExtensionsString :='';
+  FOpenCLCVersion :='';
+  FDriverVersion :='';
+  FName :='';
+  FVendor :='';
+  FVersion :='';
+  FProfile :='';
+  inherited;
 end;
 
 function TDCLDevice.GetExtensions(const Index: TSize_t): AnsiString;
@@ -2174,13 +2214,13 @@ begin
   {$ENDIF}
 end;
 
-procedure TDCLContext.Free;
+destructor TDCLContext.Destroy;
 begin
   FStatus := clReleaseContext(FContext);
   {$IFDEF LOGGING}
     WriteLog('clReleaseContext: '+GetString(FStatus)+';');
   {$ENDIF}
-  inherited Free();
+  inherited;
 end;
 
 { TDCLQueue }
@@ -2245,10 +2285,10 @@ begin
   FSize := Size;
 end;
 
-procedure TDCLBuffer.Free;
+destructor TDCLBuffer.Destroy;
 begin
   FStatus:=clReleaseMemObject(FMem);
-  inherited Free;
+  inherited;
 end;
 
 procedure TDCLCommandQueue.Execute(const Kernel: TDCLKernel;
@@ -2320,13 +2360,13 @@ begin
   {$ENDIF}
 end;
 
-procedure TDCLCommandQueue.Free;
+destructor TDCLCommandQueue.Destroy;
 begin
   FStatus := clReleaseCommandQueue(FCommandQueue);
   {$IFDEF LOGGING}
     WriteLog('clReleaseCommandQueue: '+GetString(FStatus)+';');
   {$ENDIF}
-  inherited Free();
+  inherited;
 end;
 
 { TDCLProgram }
@@ -2341,7 +2381,8 @@ begin
   {$IFDEF LOGGING}
     WriteLog('clCreateProgramWithSource: '+GetString(FStatus)+';');
   {$ENDIF}
-  FStatus := clBuildProgram(FProgram,0,nil,Options,nil,nil);
+  FStatus := clBuildProgram(FProgram,1,@Device,Options,nil,nil);
+  //FStatus := clBuildProgram(FProgram,0,nil,Options,nil,nil);
   {$IFDEF LOGGING}
     WriteLog('clBuildProgram: '+GetString(FStatus)+';');
   {$ENDIF}
@@ -2390,7 +2431,7 @@ begin
   Result := TDCLKernel.Create(FProgram,KernelName);
 end;
 
-procedure TDCLProgram.Free;
+destructor TDCLProgram.Destroy;
 begin
   FStatus := clReleaseProgram(FProgram);
   {$IFDEF LOGGING}
@@ -2399,7 +2440,7 @@ begin
   FSource := '';
   FBinarySizes := 0;
   SetLength(FBinaries,0,0);
-  inherited Free;
+  inherited;
 end;
 
 procedure TDCLProgram.SaveToFile(const FileName: AnsiString);
@@ -2426,13 +2467,13 @@ begin
   {$ENDIF}
 end;
 
-procedure TDCLKernel.Free;
+destructor TDCLKernel.Destroy;
 begin
   FStatus := clReleaseKernel(FKernel);
   {$IFDEF LOGGING}
     WriteLog('clReleaseKernel: '+GetString(FStatus)+';');
   {$ENDIF}
-  inherited Free();
+  inherited;
 end;
 
 function TDCLKernel.GetFunctionName: AnsiString;
@@ -2727,15 +2768,14 @@ begin
 
 end;
 
-procedure TDCLImage2D.Free;
+destructor TDCLImage2D.Destroy;
 begin
   FStatus := clReleaseMemObject(FMem);
   {$IFDEF LOGGING}
     WriteLog('clReleaseMemObject: '+GetString(FStatus)+';');
   {$ENDIF}
-  inherited Free();
+  inherited;
 end;
-
 
 {$IFDEF LOGGING}
 

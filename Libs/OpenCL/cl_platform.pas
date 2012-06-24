@@ -59,7 +59,7 @@ type
   TCL_char    = Shortint;//-127..+128;
 
   PCL_uchar   = ^TCL_uchar;
-  TCL_Uchar   = Byte;//0..255;
+  TCL_uchar   = Byte;//0..255;
 
   PCL_short   = ^TCL_short;
   TCL_short   = Smallint;//- 32767..+32768;

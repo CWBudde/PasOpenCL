@@ -57,7 +57,7 @@ interface
 {$INCLUDE OpenCL.inc}
 
 uses
-  OpenGL,
+  dglOpenGL,
   cl,
   cl_platform;
 

@@ -29,7 +29,9 @@ program Example1;
 uses
   CL_platform in '..\Libs\OpenCL\CL_platform.pas',
   CL in '..\Libs\OpenCL\CL.pas',
+  CL_GL in '..\Libs\OpenCL\CL_GL.pas',
   DelphiCL in '..\Libs\OpenCL\DelphiCL.pas',
+  dglOpenGL in '..\Libs\dglOpenGL.pas',
   SysUtils;
 
 const
@@ -37,6 +39,7 @@ const
   SIZE = COUNT*SizeOf(TCL_int);
 
 var
+  Platforms: TDCLPlatforms;
   CommandQueue: TDCLCommandQueue;
   SimpleProgram: TDCLProgram;
   Kernel : TDCLKernel;
@@ -45,7 +48,8 @@ var
   i: Integer;
 begin
   InitOpenCL();
-  with TDCLPlatforms.Create().Platforms[0].DeviceWithMaxClockFrequency do
+  Platforms := TDCLPlatforms.Create();
+  with Platforms.Platforms[0]^.DeviceWithMaxClockFrequency^ do
   begin
     CommandQueue := CreateCommandQueue();
     for i:=0 to COUNT-1 do Input[i]:= i;
@@ -59,13 +63,13 @@ begin
     CommandQueue.Execute(Kernel,COUNT);
     Writeln('Execution time: ',CommandQueue.ExecuteTime,' ns.');
     CommandQueue.ReadBuffer(OutputBuffer,SIZE,@Output);//If dynamical array @Output[0]
-    Kernel.Free();
-    SimpleProgram.Free();
-    OutputBuffer.Free();
-    InputBuffer.Free();
-    CommandQueue.Free();
-    Free();//Free device
+    FreeAndNil(Kernel);
+    FreeAndNil(SimpleProgram);
+    FreeAndNil(OutputBuffer);
+    FreeAndNil(InputBuffer);
+    FreeAndNil(CommandQueue);
   end;
+  FreeAndNil(Platforms);
 
   for i:=0 to COUNT-1 do Writeln(Output[i],' ');
 

@@ -1,10 +1,10 @@
 object fMain: TfMain
   Left = 378
   Top = 138
-  BorderStyle = bsNone
+  BorderStyle = bsDialog
   Caption = 'SimpleGL'
-  ClientHeight = 512
-  ClientWidth = 512
+  ClientHeight = 487
+  ClientWidth = 506
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText

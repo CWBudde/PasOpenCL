@@ -24,12 +24,14 @@
 program Example4;
 
 {$APPTYPE CONSOLE}
-{$INCLUDE ..\..\Libs\OpenCL\OpenCL.inc}
+{$INCLUDE ..\Libs\OpenCL\OpenCL.inc}
 
 uses
   CL_platform in '..\Libs\OpenCL\CL_platform.pas',
   CL in '..\Libs\OpenCL\CL.pas',
+  CL_GL in '..\Libs\OpenCL\CL_GL.pas',
   DelphiCL in '..\Libs\OpenCL\DelphiCL.pas',
+  dglOpenGL in '..\Libs\dglOpenGL.pas',
   SimpleImageLoader in '..\Libs\OpenCL\SimpleImageLoader.pas',
   Graphics,
   SysUtils;
@@ -39,6 +41,7 @@ const
   OutputFileName = 'Example4.bmp';
 
 var
+  Platforms: TDCLPlatforms;
   CommandQueue: TDCLCommandQueue;
   MainProgram: TDCLProgram;
   Kernel : TDCLKernel;
@@ -47,7 +50,8 @@ var
 begin
   InitOpenCL();
 
-  with TDCLPlatforms.Create().Platforms[0].DeviceWithMaxClockFrequency do
+  Platforms := TDCLPlatforms.Create();
+  with Platforms.Platforms[0]^.DeviceWithMaxClockFrequency^ do
   begin
     CommandQueue:= CreateCommandQueue();
     ImageLoader:= TImageLoader.Create(ExtractFilePath(ParamStr(0))+InputFileName);
@@ -61,13 +65,14 @@ begin
     ImageLoader.Resize(OutputImage.Width,OutputImage.Height);//Dispose and Get Memory
     CommandQueue.ReadImage2D(OutputImage,ImageLoader.Pointer);
     ImageLoader.SaveToFile(ExtractFilePath(ParamStr(0))+OutputFileName);
-    ImageLoader.Free();
-    Kernel.Free();
-    MainProgram.Free();
-    InputImage.Free();
-    OutputImage.Free();
-    CommandQueue.Free();
+    FreeAndNil(ImageLoader);
+    FreeAndNil(Kernel);
+    FreeAndNil(MainProgram);
+    FreeAndNil(InputImage);
+    FreeAndNil(OutputImage);
+    FreeAndNil(CommandQueue);
   end;
+  FreeAndNil(Platforms);
 
   Writeln('press any key...');
   Readln;

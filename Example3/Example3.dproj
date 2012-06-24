@@ -45,9 +45,11 @@
 			<DelphiCompile Include="Example3.dpr">
 				<MainSource>MainSource</MainSource>
 			</DelphiCompile>
-			<DCCReference Include="..\..\Libs\OpenCL\CL_platform.pas"/>
-			<DCCReference Include="..\..\Libs\OpenCL\CL.pas"/>
-			<DCCReference Include="..\..\Libs\OpenCL\DelphiCL.pas"/>
+			<DCCReference Include="..\Libs\OpenCL\CL_platform.pas"/>
+			<DCCReference Include="..\Libs\OpenCL\CL.pas"/>
+			<DCCReference Include="..\Libs\OpenCL\CL_GL.pas"/>
+			<DCCReference Include="..\Libs\OpenCL\DelphiCL.pas"/>
+			<DCCReference Include="..\Libs\dglOpenGL.pas"/>
 			<BuildConfiguration Include="Base">
 				<Key>Base</Key>
 			</BuildConfiguration>
@@ -75,7 +77,7 @@
 						<Parameters Name="LoadUnspecifiedSymbols">False</Parameters>
 					</Parameters>
 					<Language>
-						<Language Name="RootDir">J:\OpenCL_samples\svn\Examples\Example3\</Language>
+						<Language Name="RootDir">..\..\svn\Example3\</Language>
 					</Language>
 					<VersionInfo>
 						<VersionInfo Name="IncludeVerInfo">False</VersionInfo>

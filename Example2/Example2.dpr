@@ -29,7 +29,9 @@ program Example2;
 uses
   CL_platform in '..\Libs\OpenCL\CL_platform.pas',
   CL in '..\Libs\OpenCL\CL.pas',
+  CL_GL in '..\Libs\OpenCL\CL_GL.pas',
   DelphiCL in '..\Libs\OpenCL\DelphiCL.pas',
+  dglOpenGL in '..\Libs\dglOpenGL.pas',
   SysUtils;
 
 const
@@ -101,13 +103,15 @@ end;
 {$IFNDEF DEFINE_REGION_NOT_IMPLEMENTED}{$ENDREGION}{$ENDIF}
 
 var
+  Platforms: TDCLPlatforms;
   CommandQueue: TDCLCommandQueue;
   FractalProgram: TDCLProgram;
   Kernel : TDCLKernel;
   FractalBuffer: TDCLBuffer;
 begin
   InitOpenCL();
-  with TDCLPlatforms.Create().Platforms[0].DeviceWithMaxClockFrequency do
+  Platforms := TDCLPlatforms.Create();
+  with Platforms.Platforms[0]^.DeviceWithMaxClockFrequency^ do
   begin
     CommandQueue := CreateCommandQueue();
     FractalBuffer := CreateBuffer(Width*Height*4*SizeOf(Byte),nil,[mfWriteOnly]);
@@ -117,12 +121,12 @@ begin
     CommandQueue.Execute(Kernel,[TSize_t(Width),TSize_t(Height)]);
     CommandQueue.ReadBuffer(FractalBuffer,Width*Height*4*SizeOf(Byte),@host_image[0]);
     SaveToFile(ExtractFilePath(ParamStr(0))+'Example2.bmp');
-    Kernel.Free();
-    FractalProgram.Free();
-    FractalBuffer.Free();
-    CommandQueue.Free();
-    Free();
+    FreeAndNil(Kernel);
+    FreeAndNil(FractalProgram);
+    FreeAndNil(FractalBuffer);
+    FreeAndNil(CommandQueue);
   end;
+  FreeAndNil(Platforms);
   Writeln('press any key...');
   Readln;
 end.

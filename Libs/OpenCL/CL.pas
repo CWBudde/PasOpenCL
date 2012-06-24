@@ -73,7 +73,7 @@ const
   OpenCLLibName = 'libOpenCL.so';
 {$ENDIF}
 {$IFDEF DARWIN}
-  //Not yet
+  {$linkframework OpenCL}//Not yet?
 {$ENDIF}
 
 {$IFDEF DEFINE_8087CW_NOT_IMPLEMENTED}

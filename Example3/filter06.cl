@@ -2,7 +2,7 @@
 
 unsigned char logconv(unsigned char in)
 {
-   return LOG_VALUE*log(in+1);
+   return LOG_VALUE*log((float)in+1);
 }
 
 __kernel void render(__global char * input,__global char * output, int width, int height) 

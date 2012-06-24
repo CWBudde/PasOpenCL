@@ -24,6 +24,12 @@
 program Example5;
 
 uses
+  CL_platform in '..\Libs\OpenCL\CL_platform.pas',
+  CL in '..\Libs\OpenCL\CL.pas',
+  CL_GL in '..\Libs\OpenCL\CL_GL.pas',
+  DelphiCL in '..\Libs\OpenCL\DelphiCL.pas',
+  SimpleImageLoader in '..\Libs\OpenCL\SimpleImageLoader.pas',
+  dglOpenGL in '..\Libs\dglOpenGL.pas',
   Forms,
   MainUnit in 'MainUnit.pas' {fMain};
 

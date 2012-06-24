@@ -29,7 +29,9 @@ program Example3;
 uses
   CL_platform in '..\Libs\OpenCL\CL_platform.pas',
   CL in '..\Libs\OpenCL\CL.pas',
+  CL_GL in '..\Libs\OpenCL\CL_GL.pas',
   DelphiCL in '..\Libs\OpenCL\DelphiCL.pas',
+  dglOpenGL in '..\Libs\dglOpenGL.pas',
   Graphics,
   SysUtils;
 
@@ -147,6 +149,7 @@ end;
 {$IFNDEF DEFINE_REGION_NOT_IMPLEMENTED}{$ENDREGION}{$ENDIF}
 
 var
+  Platforms: TDCLPlatforms;
   CommandQueue: TDCLCommandQueue;
   MainProgram: TDCLProgram;
   Kernel : TDCLKernel;
@@ -183,7 +186,8 @@ begin
     else SourceName:='filter09.cl';
   end;
 
-  with TDCLPlatforms.Create().Platforms[0].DeviceWithMaxClockFrequency do
+  Platforms := TDCLPlatforms.Create;
+  with Platforms.Platforms[0]^.DeviceWithMaxClockFrequency^ do
   begin
     CommandQueue := CreateCommandQueue();
     InputBuffer := CreateBuffer(Width*Height*4*SizeOf(TCL_Char),nil,[mfReadOnly]);
@@ -198,13 +202,13 @@ begin
     CommandQueue.Execute(Kernel,Width*Height);
     CommandQueue.ReadBuffer(OutputBuffer,Width*Height*4*SizeOf(Byte),@host_image_out[0]);
     SaveToFile(ExtractFilePath(ParamStr(0))+'Example3.bmp');
-    Kernel.Free();
-    MainProgram.Free();
-    OutputBuffer.Free();
-    InputBuffer.Free();
-    CommandQueue.Free();
-    Free();
+    FreeAndNil(Kernel);
+    FreeAndNil(MainProgram);
+    FreeAndNil(OutputBuffer);
+    FreeAndNil(InputBuffer);
+    FreeAndNil(CommandQueue);
   end;
+  FreeAndNil(Platforms);
   Writeln('press any key...');
   Readln;
 end.

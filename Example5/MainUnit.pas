@@ -65,7 +65,8 @@ type
 var
   fMain: TfMain;
 
-  Device: TDCLDevice;
+  Platforms: TDCLPlatforms;
+  Device: PDCLDevice;
   Command: TDCLCommandQueue;
   Pro: TDCLProgram;
   Kernel: TDCLKernel;
@@ -113,7 +114,9 @@ begin
                                0,0,0,0);
   ActivateRenderingContext(FDC, FRC);
   InitGL();
-  Device := TDCLPlatforms.Create.Platforms[0].DeviceWithMaxClockFrequency;
+
+  Platforms := TDCLPlatforms.Create();
+  Device := Platforms.Platforms[0]^.DeviceWithMaxClockFrequency;
   Command := Device.CreateCommandQueue({$IFDEF GL_INTEROP}Device.CreateContextGL(){$ENDIF});
   Pro := Device.CreateProgram(ExtractFilePath(Application.ExeName)+'simpleGL.cl');
   Kernel := Pro.CreateKernel('sine_wave');
@@ -186,7 +189,7 @@ end;
 
 procedure TfMain.DeleteVBO(const VBO: PGLuint);
 begin
-  vbo_cl.Free;
+  FreeAndNil(vbo_cl);
   glBindBuffer(1, vbo^);
   glDeleteBuffers(1, vbo);
   vbo^ := 0;
@@ -195,9 +198,10 @@ end;
 procedure TfMain.CleanUp;
 begin
   DeleteVBO(@vbo);
-  Kernel.Free();
-  Command.Free();
-  Device.Free();
+  FreeAndNil(Kernel);
+  FreeAndNil(Pro);
+  FreeAndNil(Command);
+  FreeAndNil(Platforms);
 end;
 
 procedure TfMain.Motion(x, y: Integer);
