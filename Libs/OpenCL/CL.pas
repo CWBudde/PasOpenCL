@@ -179,6 +179,9 @@ type
   TCL_context_info = TCL_uint;
   PCL_context_info = ^TCL_context_info;
 
+  TCL_queue_properties = TCL_uint;
+  PCL_queue_properties = ^TCL_queue_properties;
+
   TCL_command_queue_info = TCL_uint;
   PCL_command_queue_info = ^TCL_command_queue_info;
 
@@ -190,6 +193,9 @@ type
 
   TCL_mem_flags = TCL_bitfield;
   PCL_mem_flags = ^TCL_mem_flags;
+
+  TCL_svm_mem_flags = TCL_bitfield;
+  PCL_svm_mem_flags = ^TCL_svm_mem_flags;
 
   TCL_mem_object_type = TCL_uint;
   PCL_mem_object_type = ^TCL_mem_object_type;
@@ -217,6 +223,12 @@ type
 
   TCL_map_flags = TCL_bitfield;
   PCL_map_flags = ^TCL_map_flags;
+
+  TCL_pipe_properties = TIntPtr_t;  //intptr_t
+  PCL_pipe_properties = ^TCL_pipe_properties;
+
+  TCL_pipe_info = TCL_uint;
+  PCL_pipe_info = TCL_pipe_info;
 
   TCL_program_info = TCL_uint;
   PCL_program_info = ^TCL_program_info;
@@ -248,8 +260,14 @@ type
   TCL_command_type = TCL_uint;
   PCL_command_type = ^TCL_command_type;
 
-  TCL_profiling_info = TCL_uint;   
+  TCL_profiling_info = TCL_uint;
   PCL_profiling_info = ^TCL_profiling_info;
+
+  TCL_sampler_properties = TCL_bitfield;
+  PCL_sampler_properties = ^TCL_sampler_properties;
+
+  TCL_kernel_exec_info = TCL_uint;
+  PCL_kernel_exec_info = ^TCL_kernel_exec_info;
 
   TCL_image_format = packed record
     Image_channel_order: TCL_channel_order;
@@ -342,11 +360,14 @@ const
   CL_INVALID_COMPILER_OPTIONS                  = -66;
   CL_INVALID_LINKER_OPTIONS                    = -67;
   CL_INVALID_DEVICE_PARTITION_COUNT            = -68;
+  CL_INVALID_PIPE_SIZE                         = -69;
+  CL_INVALID_DEVICE_QUEUE                      = -70;
 
   (* OpenCL Version *)
   CL_VERSION_1_0                               = 1;
   CL_VERSION_1_1                               = 1;
   CL_VERSION_1_2                               = 1;
+  CL_VERSION_2_0                               = 1;
 
   (* cl_bool *)
   CL_FALSE                                     = 0;
@@ -367,7 +388,7 @@ const
   CL_DEVICE_TYPE_GPU                           = (1 shl 2);
   CL_DEVICE_TYPE_ACCELERATOR                   = (1 shl 3);
   CL_DEVICE_TYPE_CUSTOM                        = (1 shl 4);
-  CL_DEVICE_TYPE_ALL = $FFFFFFFF;
+  CL_DEVICE_TYPE_ALL                           = $FFFFFFFF;
 
   (* cl_device_info *)
   CL_DEVICE_TYPE                               = $1000;
@@ -445,6 +466,23 @@ const
   CL_DEVICE_REFERENCE_COUNT                    = $1047;
   CL_DEVICE_PREFERRED_INTEROP_USER_SYNC        = $1048;
   CL_DEVICE_PRINTF_BUFFER_SIZE                 = $1049;
+  CL_DEVICE_IMAGE_PITCH_ALIGNMENT              = $104A;
+  CL_DEVICE_IMAGE_BASE_ADDRESS_ALIGNMENT       = $104B;
+  CL_DEVICE_MAX_READ_WRITE_IMAGE_ARGS          = $104C;
+  CL_DEVICE_MAX_GLOBAL_VARIABLE_SIZE           = $104D;
+  CL_DEVICE_QUEUE_ON_DEVICE_PROPERTIES         = $104E;
+  CL_DEVICE_QUEUE_ON_DEVICE_PREFERRED_SIZE     = $104F;
+  CL_DEVICE_QUEUE_ON_DEVICE_MAX_SIZE           = $1050;
+  CL_DEVICE_MAX_ON_DEVICE_QUEUES               = $1051;
+  CL_DEVICE_MAX_ON_DEVICE_EVENTS               = $1052;
+  CL_DEVICE_SVM_CAPABILITIES                   = $1053;
+  CL_DEVICE_GLOBAL_VARIABLE_PREFERRED_TOTAL_SIZE = $1054;
+  CL_DEVICE_MAX_PIPE_ARGS                      = $1055;
+  CL_DEVICE_PIPE_MAX_ACTIVE_RESERVATIONS       = $1056;
+  CL_DEVICE_PIPE_MAX_PACKET_SIZE               = $1057;
+  CL_DEVICE_PREFERRED_PLATFORM_ATOMIC_ALIGNMENT= $1058;
+  CL_DEVICE_PREFERRED_GLOBAL_ATOMIC_ALIGNMENT  = $1059;
+  CL_DEVICE_PREFERRED_LOCAL_ATOMIC_ALIGNMENT   = $105A;
 
   (* cl_device_fp_config - bitfield *)
   CL_FP_DENORM                                 = (1 shl 0);
@@ -472,6 +510,8 @@ const
   (* cl_command_queue_properties - bitfield *)
   CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE       = (1 shl 0);
   CL_QUEUE_PROFILING_ENABLE                    = (1 shl 1);
+  CL_QUEUE_ON_DEVICE                           = (1 shl 2);
+  CL_QUEUE_ON_DEVICE_DEFAULT                   = (1 shl 3);
 
   (* cl_context_info  *)
   CL_CONTEXT_REFERENCE_COUNT                   = $1080;
@@ -502,6 +542,7 @@ const
   CL_QUEUE_DEVICE                              = $1091;
   CL_QUEUE_REFERENCE_COUNT                     = $1092;
   CL_QUEUE_PROPERTIES                          = $1093;
+  CL_QUEUE_SIZE                                = $1094;
 
   (* cl_mem_flags - bitfield *)
   CL_MEM_READ_WRITE                            = (1 shl 0);
@@ -514,6 +555,8 @@ const
   CL_MEM_HOST_WRITE_ONLY                       = (1 shl 7);
   CL_MEM_HOST_READ_ONLY                        = (1 shl 8);
   CL_MEM_HOST_NO_ACCESS                        = (1 shl 9);
+  CL_MEM_SVM_FINE_GRAIN_BUFFER                 = (1 shl 10);   //* used by cl_svm_mem_flags only */
+  CL_MEM_SVM_ATOMICS                           = (1 shl 11);   //* used by cl_svm_mem_flags only */
 
   (* cl_mem_migration_flags - bitfield *)
   CL_MIGRATE_MEM_OBJECT_HOST                   = (1 shl 0);
@@ -533,6 +576,13 @@ const
   CL_Rx                                        = $10BA;
   CL_RGx                                       = $10BB;
   CL_RGBx                                      = $10BC;
+  CL_DEPTH                                     = $10BD;
+  CL_DEPTH_STENCIL                             = $10BE;
+  CL_sRGB                                      = $10BF;
+  CL_sRGBx                                     = $10C0;
+  CL_sRGBA                                     = $10C1;
+  CL_sBGRA                                     = $10C2;
+  CL_ABGR                                      = $10C3;
 
   (* cl_channel_type *)
   CL_SNORM_INT8                                = $10D0;
@@ -550,6 +600,7 @@ const
   CL_UNSIGNED_INT32                            = $10DC;
   CL_HALF_FLOAT                                = $10DD;
   CL_FLOAT                                     = $10DE;
+  CL_UNORM_INT24                               = $10DF;
 
   (* cl_mem_object_type *)
   CL_MEM_OBJECT_BUFFER                         = $10F0;
@@ -559,6 +610,7 @@ const
   CL_MEM_OBJECT_IMAGE1D                        = $10F4;
   CL_MEM_OBJECT_IMAGE1D_ARRAY                  = $10F5;
   CL_MEM_OBJECT_IMAGE1D_BUFFER                 = $10F6;
+  CL_MEM_OBJECT_PIPE                           = $10F7;
 
   (* cl_mem_info *)
   CL_MEM_TYPE                                  = $1100;
@@ -570,6 +622,7 @@ const
   CL_MEM_CONTEXT                               = $1106;
   CL_MEM_ASSOCIATED_MEMOBJECT                  = $1107;
   CL_MEM_OFFSET                                = $1108;
+  CL_MEM_USES_SVM_POINTER                      = $1109;
 
   (* cl_image_info *)
   CL_IMAGE_FORMAT                              = $1110;
@@ -583,6 +636,10 @@ const
   CL_IMAGE_BUFFER                              = $1118;
   CL_IMAGE_NUM_MIP_LEVELS                      = $1119;
   CL_IMAGE_NUM_SAMPLES                         = $111A;
+
+  (* cl_pipe_info *)
+  CL_PIPE_PACKET_SIZE                          = $1120;
+  CL_PIPE_MAX_PACKETS                          = $1121;
 
   (* cl_addressing_mode *)
   CL_ADDRESS_NONE                              = $1130;
@@ -601,6 +658,9 @@ const
   CL_SAMPLER_NORMALIZED_COORDS                 = $1152;
   CL_SAMPLER_ADDRESSING_MODE                   = $1153;
   CL_SAMPLER_FILTER_MODE                       = $1154;
+  CL_SAMPLER_MIP_FILTER_MODE                   = $1155;
+  CL_SAMPLER_LOD_MIN                           = $1156;
+  CL_SAMPLER_LOD_MAX                           = $1157;
 
   (* cl_map_flags - bitfield *)
   CL_MAP_READ                                  = (1 shl 0);
@@ -623,6 +683,7 @@ const
   CL_PROGRAM_BUILD_OPTIONS                     = $1182;
   CL_PROGRAM_BUILD_LOG                         = $1183;
   CL_PROGRAM_BINARY_TYPE                       = $1184;
+  CL_PROGRAM_BUILD_GLOBAL_VARIABLE_TOTAL_SIZE  = $1185;
 
   (* cl_program_binary_type *)
   CL_PROGRAM_BINARY_TYPE_NONE                  = $0;
@@ -668,6 +729,7 @@ const
   CL_KERNEL_ARG_TYPE_CONST                     = (1 shl 0);
   CL_KERNEL_ARG_TYPE_RESTRICT                  = (1 shl 1);
   CL_KERNEL_ARG_TYPE_VOLATILE                  = (1 shl 2);
+  CL_KERNEL_ARG_TYPE_PIPE                      = (1 shl 3);
 
   (* cl_kernel_work_group_info *)
   CL_KERNEL_WORK_GROUP_SIZE                    = $11B0;
@@ -676,6 +738,10 @@ const
   CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE = $11B3;
   CL_KERNEL_PRIVATE_MEM_SIZE                   = $11B4;
   CL_KERNEL_GLOBAL_WORK_SIZE                   = $11B5;
+
+(* cl_kernel_exec_info *)
+  CL_KERNEL_EXEC_INFO_SVM_PTRS                 = $11B6;
+  CL_KERNEL_EXEC_INFO_SVM_FINE_GRAIN_SYSTEM    = $11B7;
 
   (* cl_event_info  *)
   CL_EVENT_COMMAND_QUEUE                       = $11D0;
@@ -710,6 +776,11 @@ const
   CL_COMMAND_MIGRATE_MEM_OBJECTS               = $1206;
   CL_COMMAND_FILL_BUFFER                       = $1207;
   CL_COMMAND_FILL_IMAGE                        = $1208;
+  CL_COMMAND_SVM_FREE                          = $1209;
+  CL_COMMAND_SVM_MEMCPY                        = $120A;
+  CL_COMMAND_SVM_MEMFILL                       = $120B;
+  CL_COMMAND_SVM_MAP                           = $120C;
+  CL_COMMAND_SVM_UNMAP                         = $120D;
 
   (* command execution status *)
   CL_COMPLETE                                  = $0;
@@ -725,6 +796,7 @@ const
   CL_PROFILING_COMMAND_SUBMIT                  = $1281;
   CL_PROFILING_COMMAND_START                   = $1282;
   CL_PROFILING_COMMAND_END                     = $1283;
+  CL_PROFILING_COMMAND_COMPLETE                = $1284;
 {$IFNDEF DEFINE_REGION_NOT_IMPLEMENTED}{$ENDREGION}{$ENDIF}
 
 //********************************************************************************************************/
@@ -843,8 +915,18 @@ type
   {$ENDIF}
 
   (* Command Queue APIs *)
+  {$IFDEF CL_VERSION_2_0}
+  TclCreateCommandQueueWithProperties = function (
+                                   context: PCL_context;                        (* context *)
+                                   device: PCL_device_id;                       (* device *)
+                                   const properties: PCL_queue_properties;      (* properties *)
+                                   errcode_ret: PCL_int                         (* errcode_ret *)
+                                   ): PCL_command_queue;
+                                   {$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};
+  {$ENDIF}
+
   {$IFDEF CL_VERSION_1_0}
-  TclCreateCommandQueue = function (
+    TclCreateCommandQueue = function (
                                      context: PCL_context;                      (* context *)
                                      device: PCL_device_id;                     (* device *)
                                      properties: TCL_command_queue_properties;  (* properties *)
@@ -930,6 +1012,18 @@ type
                                  {$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};
   {$ENDIF}
 
+  {$IFDEF CL_VERSION_2_0}
+  TclCreatePipe = function(
+                                 context: PCL_context;                          (* context *)
+                                 flags: TCL_mem_flags;                          (* flags *)
+                                 pipe_packet_size: TCL_uint;                    (* pipe_packet_size *)
+                                 pipe_max_packets: TCL_uint;                    (* pipe_max_packets *)
+                                 const properties: PCL_pipe_properties;         (* properties *)
+                                 errcode_ret: PCL_int                          (* errcode_ret *)
+                                 ): PCL_mem;
+                                 {$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};
+  {$ENDIF}
+
   {$IFDEF CL_VERSION_1_0}
     {$IFDEF CL_USE_DEPRECATED_OPENCL_1_1_APIS}
       TclCreateImage2D = function (
@@ -1006,6 +1100,17 @@ type
                                  {$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};
   {$ENDIF}
 
+  {$IFDEF CL_VERSION_2_0}
+  TclGetPipeInfo = function(
+                                 pipe :PCL_mem;                                 (* pipe *)
+                                 param_name: PCL_pipe_info;                      (* param_name *)
+                                 param_value_size: TSize_t;                      (* param_value_size *)
+                                 param_value: Pointer;                          (* param_value *)
+                                 param_value_size_ret: Psize_t                 (* param_value_size_ret *)
+                                 ): TCL_int;
+                                 {$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};
+  {$ENDIF}
+
   {$IFDEF CL_VERSION_1_1}
   TMemObjectNotify = procedure(memob: PCL_mem; user_data: Pointer); {$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};
   {$ENDIF}
@@ -1019,14 +1124,42 @@ type
                                                  {$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};
   {$ENDIF}
 
+  (* SVM Allocation APIs *)
+  {$IFDEF CL_VERSION_2_0}
+  TclSVMAlloc = function(
+                                                 context: PCL_context;          (* context *)
+                                                 flags: TCL_svm_mem_flags;      (* flags *)
+                                                 size: TSize_t;                 (* size *)
+                                                 alignment: TCL_uint            (* alignment *)
+                                                 ): Pointer;
+                                                 {$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};
+  {$ENDIF}
+
+  {$IFDEF CL_VERSION_2_0}
+  TclSVMFree = procedure(
+                                                 context: PCL_context;           (* context *)
+                                                 svm_pointer: Pointer           (* svm_pointer *)
+                                                 );
+                                                 {$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};
+  {$ENDIF}
+
   (* Sampler APIs  *)
   {$IFDEF CL_VERSION_1_0}
-  TclCreateSampler = function (
+    TclCreateSampler = function (
                                 context: PCL_context;                           (* context *)
                                 normalized_coords: TCL_bool;                    (* normalized_coords *)
                                 addressing_mode: TCL_addressing_mode;           (* addressing_mode *)
                                 filter_mode: TCL_filter_mode;                   (* filter_mode *)
                                 errcode_ret: PCL_int                            (* errcode_ret *)
+                                ): PCL_sampler;
+                                {$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};
+  {$ENDIF}
+
+  {$IFDEF CL_VERSION_2_0}
+  TclCreateSamplerWithProperties = function (
+                                context: PCL_context;                           (* context *)
+                                const normalized_coords: PCL_sampler_properties;(* normalized_coords *)
+                                errcode_ret: PCL_int                      (* errcode_ret *)
                                 ): PCL_sampler;
                                 {$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};
   {$ENDIF}
@@ -1211,6 +1344,25 @@ type
                                arg_index: TCL_uint;                             (* arg_index *)
                                arg_size: TSize_t;                               (* arg_size *)
                                const arg_value: Pointer                         (* arg_value *)
+                               ): TCL_int;
+                               {$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};
+  {$ENDIF}
+
+  {$IFDEF CL_VERSION_2_0}
+  TclSetKernelArgSVMPointer = function(
+                                     kernel: PCL_kernel;                        (* kernel *)
+                                     arg_index: TCL_uint;                       (* arg_index *)
+                                     const arg_value: Pointer                   (* arg_value *)
+                               ): TCL_int;
+                               {$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};
+  {$ENDIF}
+
+  {$IFDEF CL_VERSION_2_0}
+  TclSetKernelExecInfo = function(
+                                     kernel: PCL_kernel;                        (* kernel *)
+                                     param_name: PCL_kernel_exec_info;          (* param_name *)
+                                     param_value_size: TSize_t;                 (* param_value_size *)
+                                     const param_value : Pointer                (* param_value *)
                                ): TCL_int;
                                {$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};
   {$ENDIF}
@@ -1617,7 +1769,8 @@ type
   {$ENDIF}
 
   {$IFDEF CL_VERSION_1_0}
-  TclEnqueueTask = function (
+
+      TclEnqueueTask = function (
                                command_queue: PCL_command_queue;                (* command_queue *)
                                kernel: PCL_kernel;                              (* kernel *)
                                num_events_in_wait_list: TCL_uint;               (* num_events_in_wait_list *)
@@ -1625,6 +1778,7 @@ type
                                event: PPCL_event                                (* event *)
                                ): TCL_int;
                                {$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};
+
   {$ENDIF}
 
 //type
@@ -1668,6 +1822,77 @@ type
                                        ): TCL_int;
                                        {$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};
   {$ENDIF}
+
+  {$IFDEF CL_VERSION_2_0}
+  TclEnqueueSVMFree = function(
+                                       command_queue: PCL_command_queue;        (* command_queue *)
+                                       num_svm_pointers: TCL_uint;              (* num_svm_pointers *)
+                                       svm_pointers: PPointer;                  (* svm_pointers[] *)
+                 //void (CL_CALLBACK * /*pfn_free_func*/)(cl_command_queue /* queue */,
+                 //                                       cl_uint          /* num_svm_pointers */,
+                 //                                       void *[]         /* svm_pointers[] */,
+                 //                                       void *           /* user_data */),
+                                       user_data: Pointer;                      (* user_data *)
+                                       num_events_in_wait_list: TCL_uint;       (* num_events_in_wait_list *)
+                                       const event_wait_list: PPCL_event;       (* event_wait_list *)
+                                       event: PPCL_event                        (* event *)
+                                       ): TCL_int;
+                                       {$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};
+  {$ENDIF}
+
+  {$IFDEF CL_VERSION_2_0}
+  TclEnqueueSVMMemcpy  = function(
+                                       command_queue: PCL_command_queue;        (* command_queue *)
+                                       blocking_copy: TCL_bool;                 (* blocking_copy *)
+                                       dst_ptr: Pointer;                        (* dst_ptr *)
+                                       const src_ptr: Pointer;                  (* src_ptr *)
+                                       size: TSize_t;                           (* size *)
+                                       num_events_in_wait_list: TCL_uint;       (* num_events_in_wait_list *)
+                                       const event_wait_list: PPCL_event;       (* event_wait_list *)
+                                       event: PPCL_event                        (* event *)
+                                       ): TCL_int;
+                                       {$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};
+  {$ENDIF}
+
+  {$IFDEF CL_VERSION_2_0}
+  TclEnqueueSVMMemFill = function(
+                                       command_queue: PCL_command_queue;        (* command_queue *)
+                                       svm_ptr: Pointer;                        (* svm_ptr *)
+                                       const pattern: Pointer;                  (* pattern *)
+                                       pattern_size: TSize_t;                   (* pattern_size *)
+                                       size: TSize_t;                           (* size *)
+                                       num_events_in_wait_list: TCL_uint;       (* num_events_in_wait_list */,
+                                       const event_wait_list: PPCL_event;       (* event_wait_list *)
+                                       event: PPCL_event                        (* event *)
+                                       ): TCL_int;
+                                       {$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};
+  {$ENDIF}
+
+  {$IFDEF CL_VERSION_2_0}
+  TclEnqueueSVMMap = function(
+                                       command_queue: PCL_command_queue;        (* command_queue *)
+                                       blocking_map: TCL_bool;                  (* blocking_map *)
+                                       flags: TCL_map_flags;                     (* flags *)
+                                       svm_ptr: Pointer;                        (* svm_ptr *)
+                                       size: TSize_t;                           (* size *)
+                                       num_events_in_wait_list: TCL_uint;       (* num_events_in_wait_list *)
+                                       const event_wait_list: PPCL_event;       (* event_wait_list *)
+                                       event: PPCL_event                        (* event *)
+                                       ): TCL_int;
+                                       {$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};
+  {$ENDIF}
+
+  {$IFDEF CL_VERSION_2_0}
+  TclEnqueueSVMUnmap = function(
+                                       command_queue: PCL_command_queue;        (* command_queue *)
+                                       svm_ptr: Pointer;                        (* svm_ptr *)
+                                       num_events_in_wait_list: TCL_uint;       (* num_events_in_wait_list *)
+                                       const event_wait_list: PPCL_event;       (* event_wait_list *)
+                                       event: PPCL_event                        (* event *)
+                                       ): TCL_int;
+                                       {$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};
+  {$ENDIF}
+
 
   {$IFDEF CL_VERSION_1_2}
   TclSetPrintfCallback = function(
@@ -1717,9 +1942,7 @@ type
    *)
 
   {$IFDEF CL_VERSION_1_0}
-    {$IFDEF CL_USE_DEPRECATED_OPENCL_1_1_APIS}
       TclGetExtensionFunctionAddress = function (const func_name: PAnsiChar): Pointer; {$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};
-    {$ENDIF}
   {$ENDIF}
 
   {$IFDEF CL_VERSION_1_2}
@@ -1801,7 +2024,9 @@ var
 
   (* Sampler APIs *)
 {$IFDEF CL_VERSION_1_0}
+
   clCreateSampler:            TclCreateSampler;
+
   clRetainSampler:            TclRetainSampler;
   clReleaseSampler:           TclReleaseSampler;
   clGetSamplerInfo:           TclGetSamplerInfo;
@@ -1924,7 +2149,9 @@ var
 {$ENDIF}
 {$IFDEF CL_VERSION_1_0}
   clEnqueueNDRangeKernel:     TclEnqueueNDRangeKernel;
-  clEnqueueTask:          TclEnqueueTask;
+
+    clEnqueueTask:          TclEnqueueTask;
+
   clEnqueueNativeKernel:  TclEnqueueNativeKernel;
 {$ENDIF}
 {$IFDEF CL_VERSION_1_2}
@@ -1948,14 +2175,30 @@ var
  * calling the returned function address.
  *)
 {$IFDEF CL_VERSION_1_0}
-  {$IFDEF CL_USE_DEPRECATED_OPENCL_1_1_APIS}
     clGetExtensionFunctionAddress:  TclGetExtensionFunctionAddress;
-  {$ENDIF}
 {$ENDIF}
 
 {$IFDEF CL_VERSION_1_2}
   clGetExtensionFunctionAddressForPlatform: TclGetExtensionFunctionAddressForPlatform;
 {$ENDIF}
+
+{$IFDEF CL_VERSION_2_0}
+  clCreateCommandQueueWithProperties: TclCreateCommandQueueWithProperties;
+  clCreatePipe: TclCreatePipe;
+  clGetPipeInfo: TclGetPipeInfo;
+  clSVMAlloc: TclSVMAlloc;
+  clSVMFree: TclSVMFree;
+  clCreateSamplerWithProperties: TclCreateSamplerWithProperties;
+  clSetKernelArgSVMPointer: TclSetKernelArgSVMPointer;
+  clSetKernelExecInfo: TclSetKernelExecInfo;
+
+  clEnqueueSVMFree: TclEnqueueSVMFree;
+  clEnqueueSVMMemcpy: TclEnqueueSVMMemcpy;
+  clEnqueueSVMMemFill: TclEnqueueSVMMemFill;
+  clEnqueueSVMMap: TclEnqueueSVMMap;
+  clEnqueueSVMUnmap: TclEnqueueSVMUnmap;
+{$ENDIF}
+
 {$IFNDEF DEFINE_REGION_NOT_IMPLEMENTED}{$ENDREGION}{$ENDIF}
 
 function oclGetProcAddress(ProcName: PAnsiChar; LibHandle: Pointer = nil): Pointer;
@@ -2264,7 +2507,23 @@ begin
     {$IFDEF CL_VERSION_1_2}
       clGetExtensionFunctionAddressForPlatform := TclGetExtensionFunctionAddressForPlatform(oclGetProcAddress('clGetExtensionFunctionAddressForPlatform', OCL_LibHandle));
     {$ENDIF}
-    
+
+    {$IFDEF CL_VERSION_2_0}
+      clCreateCommandQueueWithProperties := TclCreateCommandQueueWithProperties(oclGetProcAddress('clCreateCommandQueueWithProperties', OCL_LibHandle));
+      clCreatePipe := TclCreatePipe(oclGetProcAddress('clCreatePipe', OCL_LibHandle));
+      clGetPipeInfo := TclGetPipeInfo(oclGetProcAddress('clGetPipeInfo', OCL_LibHandle));
+      clSVMAlloc := TclSVMAlloc(oclGetProcAddress('clSVMAlloc', OCL_LibHandle));
+      clSVMFree := TclSVMFree(oclGetProcAddress('clSVMFree', OCL_LibHandle));
+      clCreateSamplerWithProperties := TclCreateSamplerWithProperties(oclGetProcAddress('clCreateSamplerWithProperties', OCL_LibHandle));
+      clSetKernelArgSVMPointer := TclSetKernelArgSVMPointer(oclGetProcAddress('clSetKernelArgSVMPointer', OCL_LibHandle));
+      clSetKernelExecInfo := TclSetKernelExecInfo(oclGetProcAddress('clSetKernelExecInfo', OCL_LibHandle));
+      clEnqueueSVMFree := TclEnqueueSVMFree(oclGetProcAddress('clEnqueueSVMFree', OCL_LibHandle));
+      clEnqueueSVMMemcpy := TclEnqueueSVMMemcpy(oclGetProcAddress('clEnqueueSVMMemcpy', OCL_LibHandle));
+      clEnqueueSVMMemFill := TclEnqueueSVMMemFill(oclGetProcAddress('clEnqueueSVMMemFill', OCL_LibHandle));
+      clEnqueueSVMMap := TclEnqueueSVMMap(oclGetProcAddress('clEnqueueSVMMap', OCL_LibHandle));
+      clEnqueueSVMUnmap := TclEnqueueSVMUnmap(oclGetProcAddress('clEnqueueSVMUnmap', OCL_LibHandle));
+    {$ENDIF}
+
       Result := True;
   end;
 end;

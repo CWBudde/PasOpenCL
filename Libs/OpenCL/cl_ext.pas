@@ -606,6 +606,76 @@ const
     clEnqueueMigrateMemObjectEXT: TclEnqueueMigrateMemObjectEXT;
 {$ENDIF}
 
+{$IFDEF CL_VERSION_1_1}
+(*********************************
+* cl_qcom_ext_host_ptr extension
+*********************************)
+
+const
+
+  CL_MEM_EXT_HOST_PTR_QCOM                  = (1 shl 29);
+
+  CL_DEVICE_EXT_MEM_PADDING_IN_BYTES_QCOM   = $40A0;
+  CL_DEVICE_PAGE_SIZE_QCOM                  = $40A1;
+  CL_IMAGE_ROW_ALIGNMENT_QCOM               = $40A2;
+  CL_IMAGE_SLICE_ALIGNMENT_QCOM             = $40A3;
+  CL_MEM_HOST_UNCACHED_QCOM                 = $40A4;
+  CL_MEM_HOST_WRITEBACK_QCOM                = $40A5;
+  CL_MEM_HOST_WRITETHROUGH_QCOM             = $40A6;
+  CL_MEM_HOST_WRITE_COMBINING_QCOM          = $40A7;
+
+type
+  TCL_image_pitch_info_qcom = TCL_uint;
+  PCL_image_pitch_info_qcom = ^TCL_image_pitch_info_qcom;
+
+
+TclGetDeviceImageInfoQCOM = function(
+                         device: PCL_device_id;
+                         image_width: TSize_t;
+                         image_height: TSize_t;
+                         const image_format: PCL_image_format;
+                         param_name: PCL_image_pitch_info_qcom;
+                         param_value_size: TSize_t;
+                         param_value: Pointer;
+                         param_value_size_ret: PSize_t
+                         ): TCL_int;
+                         {$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};
+
+var
+  clGetDeviceImageInfoQCOM: TclGetDeviceImageInfoQCOM;
+
+type
+
+TCL_mem_ext_host_ptr = packed record
+  (* Type of external memory allocation. *)
+  (* Legal values will be defined in layered extensions. *)
+  allocation_type: TCL_uint;
+  (* Host cache policy for this external memory allocation. *)
+  host_cache_policy: TCL_uint;
+end;
+PCL_mem_ext_host_ptr = ^TCL_mem_ext_host_ptr;
+
+(*********************************
+* cl_qcom_ion_host_ptr extension
+*********************************)
+const
+  CL_MEM_ION_HOST_PTR_QCOM                  = $40A8;
+
+type
+TCL_mem_ion_host_ptr = packed record
+  (* Type of external memory allocation. *)
+  (* Must be CL_MEM_ION_HOST_PTR_QCOM for ION allocations. *)
+  ext_host_ptr: PCL_mem_ext_host_ptr;
+  (* ION file descriptor *)
+  ion_filedesc: Integer;
+  (* Host pointer to the ION allocated memory *)
+  ion_hostptr: Pointer;
+end;
+
+PCL_mem_ion_host_ptr = ^TCL_mem_ion_host_ptr;
+
+{$ENDIF}
+
 
 
 function InitCL_EXT: Boolean;
@@ -633,7 +703,11 @@ begin
       clCreateSubDevicesEXT := TclCreateSubDevicesEXT(oclGetProcAddress('clCreateSubDevicesEXT', OCL_LibHandle));
     {$ENDIF}
     {$IFDEF CL_VERSION_1_0}
-    clEnqueueMigrateMemObjectEXT := TclEnqueueMigrateMemObjectEXT(oclGetProcAddress('clEnqueueMigrateMemObjectEXT', OCL_LibHandle));
+      clEnqueueMigrateMemObjectEXT := TclEnqueueMigrateMemObjectEXT(oclGetProcAddress('clEnqueueMigrateMemObjectEXT', OCL_LibHandle));
+    {$ENDIF}
+
+    {$IFDEF CL_VERSION_1_1}
+       clGetDeviceImageInfoQCOM := TclGetDeviceImageInfoQCOM(oclGetProcAddress('clGetDeviceImageInfoQCOM', OCL_LibHandle));
     {$ENDIF}
 
     Result := True;
