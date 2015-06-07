@@ -45,7 +45,7 @@
 (*                                              *)
 (***********Copyright (c) niello 2008-2011*******)
 
-unit cl_d3d10;
+unit CL_D3D10;
 
 interface
 
@@ -53,14 +53,13 @@ interface
 
 uses
   OpenGL,
-  cl,
+  CL,
   D3D10,
-  cl_platform;
+  CL_Platform;
 
 {$INCLUDE 'OpenCL.inc'}
 
 type
-
   UINT = Longword;
 
 (******************************************************************************

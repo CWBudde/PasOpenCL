@@ -50,7 +50,7 @@
  * OpenGL dependencies. The application is responsible for #including
  * OpenGL or OpenGL ES headers before #including cl_gl.h.
  *)
-unit cl_gl;
+unit CL_GL;
 
 interface
 
@@ -58,8 +58,8 @@ interface
 
 uses
   dglOpenGL,
-  cl,
-  cl_platform;
+  CL,
+  CL_Platform;
 
 type
 

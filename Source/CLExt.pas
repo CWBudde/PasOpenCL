@@ -25,7 +25,7 @@
 (*      ICQ             : 446-769-253       *)
 (*                                          *)
 (*********Copyright (c) niello 2008-2011*****)
-unit clext;
+unit CLExt;
 
 interface
 

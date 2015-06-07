@@ -44,14 +44,14 @@
 (*                    (c) 2010                  *)
 (*                                              *)
 (***********Copyright (c) niello 2008-2011*******)
-unit CL_dx9_media_sharing;
+unit CL_DX9_Media_Sharing;
 
 interface
 
 {$INCLUDE OpenCL.inc}
 
 uses
-  CL_platform,
+  CL_Platform,
   CL,
   Direct3D9;
 

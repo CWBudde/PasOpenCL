@@ -44,7 +44,7 @@
 //(c) 2009
 //Beta release 1.0
 
-unit cl_platform;
+unit CL_Platform;
 
 interface
 

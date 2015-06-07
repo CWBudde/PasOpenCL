@@ -62,7 +62,7 @@ uses
   {$IFDEF WINDOWS}
   Windows,
   {$ENDIF}
-  cl_platform;
+  CL_Platform;
 
 {$IFDEF WINDOWS}
 const
@@ -2608,4 +2608,3 @@ end;
   Set8087CW($133F);
 {$ENDIF}
 end.
-

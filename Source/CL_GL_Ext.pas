@@ -47,7 +47,7 @@
 
 (* cl_gl_ext.h contains vendor (non-KHR) OpenCL extensions which have         *)
 (* OpenGL dependencies.                                                       *)
-unit CL_gl_ext;
+unit CL_GL_Ext;
 
 interface
 
@@ -59,10 +59,10 @@ interface
  *)
 
 uses
-  cl,
+  CL,
   OpenGL,
-  cl_gl,
-  cl_platform;
+  CL_GL,
+  CL_Platform;
 
 {$IFDEF CL_VERSION_1_1}
 const

@@ -48,15 +48,15 @@
 (* cl_ext.h contains OpenCL extensions which don't have external *)
 (* (OpenGL, D3D) dependencies.                                   *)
 
-unit cl_ext;
+unit CL_Ext;
 
 interface
 
 {$INCLUDE OpenCL.inc}
 
 uses
-  cl,
-  cl_platform;
+  CL,
+  CL_Platform;
 
 const
 (* cl_khr_fp64 extension - no extension #define since it has no functions  *)

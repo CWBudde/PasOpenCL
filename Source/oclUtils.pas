@@ -35,7 +35,7 @@ unit oclUtils;
 interface
 
 uses
-  CL,CL_platform,clExt;
+  CL, CL_platform,CLExt;
 
 {$INCLUDE OpenCL.inc}
 
@@ -45,15 +45,12 @@ const
   NVIDIA_PLATFORM = 'NVIDIA';
   ATI_PLATFORM    = 'ATI';
 
-
 type
   LogWriteln = procedure(const message: AnsiString);
-
 
 var
   Default_Platform: PAnsiChar =NVIDIA_PLATFORM;
   MainLog: LogWriteln;
-
 
 function oclGetPlatformID(clSelectedPlatformID: PPCL_platform_id): TCL_int;
 procedure oclPrintDevName(var device: PCL_device_id);//tested +fixed = complete

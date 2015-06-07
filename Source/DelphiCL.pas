@@ -25,11 +25,11 @@ interface
 
 uses
   CL,
-  CL_gl,
+  CL_GL,
   Windows,
   SysUtils,
   dglOpenGL,
-  CL_platform;
+  CL_Platform;
 
 const
   DCL_BUILD_OPTION_SINGLE_PRECISION_CONSTANT = '-cl-single-precision-constant ';

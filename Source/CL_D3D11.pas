@@ -44,14 +44,14 @@
 (*                    (c) 2010                  *)
 (*                                              *)
 (***********Copyright (c) niello 2008-2011*******)
-unit CL_d3d11;
+unit CL_D3D11;
 
 interface
 
 {$INCLUDE OpenCL.inc}
 
 uses
-  CL_platform,
+  CL_Platform,
   CL;
 
 (******************************************************************************
@@ -60,7 +60,6 @@ const
   cl_khr_d3d11_sharing = 1;
 
 type
-
   TCL_d3d11_device_source_khr = TCL_uint;
   PCL_d3d11_device_source_khr = ^TCL_d3d11_device_source_khr;
 
@@ -159,8 +158,6 @@ type
     ): TCL_int;
                                        {$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};
 {$ENDIF}
-
-
 
 implementation
 
