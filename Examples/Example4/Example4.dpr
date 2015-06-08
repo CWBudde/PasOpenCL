@@ -43,18 +43,20 @@ var
   CommandQueue: TDCLCommandQueue;
   MainProgram: TDCLProgram;
   Kernel : TDCLKernel;
-  InputImage,OutputImage: TDCLImage2D;
+  InputImage, OutputImage: TDCLImage2D;
   ImageLoader: TImageLoader;
+  FileName: TFileName;
 begin
   InitOpenCL;
 
   Platforms := TDCLPlatforms.Create;
   with Platforms.Platforms[0]^.DeviceWithMaxClockFrequency^ do
-  begin
+  try
     CommandQueue := CreateCommandQueue;
     try
-      ImageLoader := TImageLoader.Create(ExtractFilePath(ParamStr(0)) +
-        InputFileName);
+      FileName := ExtractFilePath(ParamStr(0)) + '..\..\Resources\' + InputFileName;
+      Assert(FileExists(FileName));
+      ImageLoader := TImageLoader.Create(FileName);
       with ImageLoader do
         InputImage := CreateImage2D(Format, Width, Height, 0, ImageLoader.Pointer,
           [mfReadOnly, mfUseHostPtr]);
@@ -74,6 +76,7 @@ begin
       ImageLoader.Resize(OutputImage.Width, OutputImage.Height); // Dispose and Get Memory
       CommandQueue.ReadImage2D(OutputImage, ImageLoader.Pointer);
       ImageLoader.SaveToFile(ExtractFilePath(ParamStr(0)) + OutputFileName);
+
       FreeAndNil(ImageLoader);
       FreeAndNil(Kernel);
       FreeAndNil(MainProgram);
@@ -82,8 +85,9 @@ begin
     finally
       FreeAndNil(CommandQueue);
     end;
+  finally
+    FreeAndNil(Platforms);
   end;
-  FreeAndNil(Platforms);
 
   Writeln('press any key...');
   Readln;

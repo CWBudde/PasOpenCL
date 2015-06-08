@@ -29,8 +29,8 @@ interface
 {$DEFINE GL_INTEROP}
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  ExtCtrls, Dialogs, dglOpenGL, CL_Platform, CL, CL_GL, DelphiCL;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, ExtCtrls,
+  Dialogs, dglOpenGL, CL_Platform, CL, CL_GL, DelphiCL;
 
 type
   TFormMain = class(TForm)
@@ -53,8 +53,7 @@ type
     FProgram: TDCLProgram;
     FKernel: TDCLKernel;
 
-    FRotateX: TCL_float;
-    FRotateY: TCL_float;
+    FRotateX, FRotateY: TCL_float;
     FTranslateZ: TCL_float;
     FAnim: TCL_float;
 
@@ -77,7 +76,6 @@ var
   FormMain: TFormMain;
 
   vbo_cl: TDCLBuffer;
-
   vbo: TGLuint;
 
   iFrameCount: Integer = 0;
@@ -213,20 +211,18 @@ end;
 
 procedure TFormMain.Motion(x, y: Integer);
 var
-  dx,dy: TCL_float;
+  dx, dy: TCL_float;
 begin
   dx := x - FMouseOldX;
   dy := y - FMouseOldy;
-  if (FMouseButtons and 1)<>0 then
+  if (FMouseButtons and 1) <> 0 then
   begin
     FRotateX := FRotateX + dy * 0.2;
     FRotateY := FRotateY + dx * 0.2;
   end
   else
-    if (FMouseButtons and 4)<>0 then
-    begin
+    if (FMouseButtons and 4) <> 0 then
       FTranslateZ := FTranslateZ + dy * 0.01;
-    end;
   FMouseOldX := x;
   FMouseOldy := y;
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
@@ -276,7 +272,7 @@ begin
 {$ENDIF}
   szGlobalWorkSize[0] := mesh_width;
   szGlobalWorkSize[1] := mesh_height;
-  FKernel.SetArg(3,SizeOf(TCL_float), @FAnim);
+  FKernel.SetArg(3, SizeOf(TCL_float), @FAnim);
   FCommand.Execute(FKernel, szGlobalWorkSize);
 {$IFDEF GL_INTEROP}
   FCommand.ReleaseGLObject(vbo_cl);

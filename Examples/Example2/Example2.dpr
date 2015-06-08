@@ -110,7 +110,7 @@ begin
   InitOpenCL;
   Platforms := TDCLPlatforms.Create;
   with Platforms.Platforms[0]^.DeviceWithMaxClockFrequency^ do
-  begin
+  try
     CommandQueue := CreateCommandQueue;
     try
       FractalBuffer := CreateBuffer(Width * Height * 4 * SizeOf(Byte), nil, [mfWriteOnly]);
@@ -131,8 +131,9 @@ begin
     finally
       FreeAndNil(CommandQueue);
     end;
+  finally
+    FreeAndNil(Platforms);
   end;
-  FreeAndNil(Platforms);
   Writeln('press any key...');
   Readln;
 end.

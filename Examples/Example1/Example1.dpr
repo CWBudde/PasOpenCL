@@ -48,7 +48,7 @@ begin
   InitOpenCL;
   Platforms := TDCLPlatforms.Create;
   with Platforms.Platforms[0]^.DeviceWithMaxClockFrequency^ do
-  begin
+  try
     CommandQueue := CreateCommandQueue;
     try
       for i := 0 to COUNT - 1 do
@@ -78,8 +78,9 @@ begin
     finally
       FreeAndNil(CommandQueue);
     end;
+  finally
+    FreeAndNil(Platforms);
   end;
-  FreeAndNil(Platforms);
 
   for i := 0 to COUNT - 1 do
     Writeln(Output[i], ' ');
