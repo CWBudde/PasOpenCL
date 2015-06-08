@@ -63,7 +63,10 @@ begin
       with ImageLoader do
         OutputImage := CreateImage2D(Format, Width, Height, 0, nil,
           [mfReadWrite, mfAllocHostPtr]);
-      MainProgram := CreateProgram(ExtractFilePath(ParamStr(0)) + 'Example4.cl');
+
+      FileName := ExtractFilePath(ParamStr(0)) + '..\..\Resources\Example4.cl';
+      Assert(FileExists(FileName));
+      MainProgram := CreateProgram(FileName);
 
       // create kernel and specify arguments
       Kernel := MainProgram.CreateKernel('main');

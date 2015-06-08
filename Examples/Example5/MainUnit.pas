@@ -100,6 +100,8 @@ implementation
 {$R *.dfm}
 
 procedure TFormMain.FormCreate(Sender: TObject);
+var
+  FileName: TFileName;
 begin
   FDC := GetDC(Handle);
   if (not InitOpenGL)or(not InitOpenCL) then
@@ -116,10 +118,14 @@ begin
   FAnim := 0.0;
   FMouseButtons := 0;
 
+  // specify program
+  FileName := ExtractFilePath(ParamStr(0)) +  '..\..\Resources\SimpleGL.cl';
+  Assert(FileExists(FileName));
+
   FPlatforms := TDCLPlatforms.Create;
   FDevice := FPlatforms.Platforms[0]^.DeviceWithMaxClockFrequency;
   FCommand := FDevice.CreateCommandQueue({$IFDEF GL_INTEROP}FDevice.CreateContextGL{$ENDIF});
-  FProgram := FDevice.CreateProgram(ExtractFilePath(Application.ExeName) + 'simpleGL.cl');
+  FProgram := FDevice.CreateProgram(FileName);
   FKernel := FProgram.CreateKernel('sine_wave');
 
   CreateVBO(@vbo);
@@ -147,7 +153,7 @@ begin
   glViewport(0, 0, window_width, window_height);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity;
-  gluPerspective(60.0, window_width /  window_height, 0.1, 10.0);
+  gluPerspective(60.0, window_width / window_height, 0.1, 10.0);
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity;

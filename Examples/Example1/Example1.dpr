@@ -39,12 +39,17 @@ const
 var
   Platforms: TDCLPlatforms;
   CommandQueue: TDCLCommandQueue;
+  FileName: TFileName;
   SimpleProgram: TDCLProgram;
   Kernel: TDCLKernel;
   Input, Output: array [0 .. COUNT - 1] of TCL_int;
   InputBuffer, OutputBuffer: TDCLBuffer;
   i: Integer;
 begin
+  // specify program
+  FileName := ExtractFilePath(ParamStr(0)) +  '..\..\Resources\Example1.cl';
+  Assert(FileExists(FileName));
+
   InitOpenCL;
   Platforms := TDCLPlatforms.Create;
   with Platforms.Platforms[0]^.DeviceWithMaxClockFrequency^ do
@@ -55,8 +60,8 @@ begin
         Input[i] := i;
       InputBuffer := CreateBuffer(SIZE, @Input, [mfReadOnly, mfUseHostPtr]); // If dynamical array @Input[0]
       OutputBuffer := CreateBuffer(SIZE, nil, [mfWriteOnly]);
-      SimpleProgram := CreateProgram(ExtractFilePath(ParamStr(0)) +
-        'Example1.cl');
+
+      SimpleProgram := CreateProgram(FileName);
       SimpleProgram.SaveToFile('Example1.bin');
 
       // create program and set arguments

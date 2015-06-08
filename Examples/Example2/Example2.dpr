@@ -106,7 +106,12 @@ var
   FractalProgram: TDCLProgram;
   Kernel : TDCLKernel;
   FractalBuffer: TDCLBuffer;
+  FileName: TFileName;
 begin
+  // specify program
+  FileName := ExtractFilePath(ParamStr(0)) +  '..\..\Resources\Example2.cl';
+  Assert(FileExists(FileName));
+
   InitOpenCL;
   Platforms := TDCLPlatforms.Create;
   with Platforms.Platforms[0]^.DeviceWithMaxClockFrequency^ do
@@ -114,7 +119,7 @@ begin
     CommandQueue := CreateCommandQueue;
     try
       FractalBuffer := CreateBuffer(Width * Height * 4 * SizeOf(Byte), nil, [mfWriteOnly]);
-      FractalProgram := CreateProgram(ExtractFilePath(ParamStr(0)) + 'Example2.cl');
+      FractalProgram := CreateProgram(FileName);
 
       // create kernel and specify arguments
       Kernel := FractalProgram.CreateKernel('render');

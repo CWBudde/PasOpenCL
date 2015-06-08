@@ -154,9 +154,12 @@ var
   InputBuffer, OutputBuffer: TDCLBuffer;
   FilterType: Byte;
   SourceName: string;
+  FileName: TFileName;
 begin
-  InitOpenCL;
-  LoadFromFile(ExtractFilePath(ParamStr(0)) + '..\..\Resources\Lena.bmp');
+  // specify & load image resource
+  FileName := ExtractFilePath(ParamStr(0)) + '..\..\Resources\Lena.bmp';
+  Assert(FileExists(FileName));
+  LoadFromFile(FileName);
 
   Writeln('Select filter kenel:');
   Writeln(' 0 - Filter01.cl - "Mask 3x3"');
@@ -194,9 +197,15 @@ begin
     SourceName := 'Filter09.cl';
   end;
 
+  // specify source name
+  FileName := ExtractFilePath(ParamStr(0)) + '..\..\Resources\' + SourceName;
+  Assert(FileExists(FileName));
+
+  InitOpenCL;
+
   Platforms := TDCLPlatforms.Create;
   with Platforms.Platforms[0]^.DeviceWithMaxClockFrequency^ do
-  begin
+  try
     CommandQueue := CreateCommandQueue;
     try
       InputBuffer := CreateBuffer(Width * Height * 4 * SizeOf(TCL_Char), nil,
@@ -205,7 +214,7 @@ begin
         @HostImageIn[0]);
       OutputBuffer := CreateBuffer(Width * Height * 4 * SizeOf(TCL_Char), nil,
         [mfWriteOnly]);
-      MainProgram := CreateProgram(ExtractFilePath(ParamStr(0)) + SourceName);
+      MainProgram := CreateProgram(FileName);
 
       // create kernel and specify arguments
       Kernel := MainProgram.CreateKernel('render');
