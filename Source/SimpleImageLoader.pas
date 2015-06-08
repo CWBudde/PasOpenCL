@@ -26,7 +26,7 @@ uses
 
 type
   PArrayByte = ^TArrayByte;
-  TArrayByte = Array [0..0] of TCL_uchar4;
+  TArrayByte = array [0..0] of TCL_uchar4;
   TImageLoader = class
   private
     FWidth: Integer;
@@ -34,18 +34,20 @@ type
     FPtr: PArrayByte;
     FFormat: TCL_image_format;
     procedure SetPointer(const Ptr: Pointer);
-    function GetPointer(): Pointer;
-    function GetFormat(): PCL_image_format;
+    function GetPointer: Pointer;
+    function GetFormat: PCL_image_format;
   public
     constructor Create(const FileName: String); overload;
-    constructor Create(); overload;
+    constructor Create; overload;
+    destructor Destroy; override;
+
+    procedure SaveToFile(const FileName: String);
+    procedure Resize(const Width, Height: Integer);
+
     property Width: Integer read FWidth;
     property Height: Integer read FHeight;
     property Pointer: Pointer read GetPointer write SetPointer;
     property Format: PCL_image_format read GetFormat;
-    procedure Free();
-    procedure SaveToFile(const FileName: String);
-    procedure Resize(const Width,Height: Integer);
   end;
 
 implementation
@@ -58,7 +60,7 @@ var
   i,j: Integer;
   row: PArrayByte;
 begin
-  inherited Create();
+  inherited Create;
   bmp := TBitmap.Create;
   bmp.LoadFromFile(FileName);
   FWidth := bmp.Width;
@@ -75,15 +77,21 @@ begin
   end;
   FFormat.Image_channel_order := CL_BGRA; //BMP - BGRA file
   FFormat.Image_channel_data_type := CL_UNSIGNED_INT8;
-  bmp.Free();
+  bmp.Free;
 end;
 
-constructor TImageLoader.Create();
+constructor TImageLoader.Create;
 begin
-  inherited Create();
+  inherited Create;
 
   FFormat.Image_channel_order := CL_BGRA; //BMP - BGRA file
   FFormat.Image_channel_data_type := CL_UNSIGNED_INT8;
+end;
+
+destructor TImageLoader.Destroy;
+begin
+  Dispose(FPtr);
+  inherited;
 end;
 
 procedure TImageLoader.SaveToFile(const FileName: String);
@@ -92,7 +100,7 @@ var
   i,j: integer;
   row: PArrayByte;
 begin
-  bmp:=TBitmap.Create();
+  bmp:=TBitmap.Create;
   bmp.Width := Width;
   bmp.Height := Height;
   bmp.PixelFormat := pf32bit;
@@ -106,12 +114,6 @@ begin
     end;
   bmp.SaveToFile(FileName);
   bmp.Free;
-end;
-
-procedure TImageLoader.Free;
-begin
-  Dispose(FPtr);
-  inherited Free();
 end;
 
 function TImageLoader.GetFormat: PCL_image_format;
@@ -132,7 +134,7 @@ end;
 procedure TImageLoader.Resize(const Width, Height: Integer);
 begin
   Dispose(FPtr);
-  FPtr:=GetMemory(FWidth*FHeight*4);
+  FPtr := GetMemory(FWidth * FHeight * 4);
 end;
 
 end.

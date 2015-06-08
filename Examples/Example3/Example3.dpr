@@ -4,34 +4,32 @@
 (*                                                                      *)
 (*      project site    : http://code.google.com/p/delphi-opencl/       *)
 (*                                                                      *)
-(*      file name       : Example3.dpr                                  *)
-(*      last modify     : 10.12.11                                      *)
+(*      file name       : Example5.dpr                                  *)
+(*      last modify     : 24.12.11                                      *)
 (*      license         : BSD                                           *)
 (*                                                                      *)
-(*      created by      : Maksym Tymkovych                              *)
-(*                           (niello)                                   *)
+(*      created by      : Maksym Tymkovych (niello)                     *)
 (*      Site            : www.niello.org.ua                             *)
 (*      e-mail          : muxamed13@ukr.net                             *)
 (*      ICQ             : 446-769-253                                   *)
 (*                                                                      *)
-(*      and             : Alexander Kiselev                             *)
-(*                          (Igroman)                                   *)
-(*      Site : http://Igroman14.livejournal.com                         *)
+(*      and             : Alexander Kiselev (Igroman)                   *)
+(*      Site            : http://Igroman14.livejournal.com              *)
 (*      e-mail          : Igroman14@yandex.ru                           *)
 (*      ICQ             : 207-381-695                                   *)
 (*                                                                      *)
 (************************delphi-opencl2010-2011**************************)
+
 program Example3;
 
 {$APPTYPE CONSOLE}
-{$INCLUDE ..\Libs\OpenCL\OpenCL.inc}
+{$INCLUDE ..\..\Source\OpenCL.inc}
 
 uses
-  CL_platform in '..\Libs\OpenCL\CL_platform.pas',
-  CL in '..\Libs\OpenCL\CL.pas',
-  CL_GL in '..\Libs\OpenCL\CL_GL.pas',
-  DelphiCL in '..\Libs\OpenCL\DelphiCL.pas',
-  dglOpenGL in '..\Libs\dglOpenGL.pas',
+  CL_Platform in '..\..\Source\CL_Platform.pas',
+  CL in '..\..\Source\CL.pas',
+  CL_GL in '..\..\Source\CL_GL.pas',
+  DelphiCL in '..\..\Source\DelphiCL.pas',
   Graphics,
   SysUtils;
 
@@ -157,7 +155,7 @@ var
   filtertype: Byte;
   SourceName: String;
 begin
-  InitOpenCL();
+  InitOpenCL;
   LoadFromFile(ExtractFilePath(ParamStr(0))+'Lena.bmp');
 
   Writeln('Select filter kenel:');
@@ -189,24 +187,36 @@ begin
   Platforms := TDCLPlatforms.Create;
   with Platforms.Platforms[0]^.DeviceWithMaxClockFrequency^ do
   begin
-    CommandQueue := CreateCommandQueue();
-    InputBuffer := CreateBuffer(Width*Height*4*SizeOf(TCL_Char),nil,[mfReadOnly]);
-    CommandQueue.WriteBuffer(InputBuffer,Width*Height*4*SizeOf(TCL_Char),@host_image_in[0]);
-    OutputBuffer := CreateBuffer(Width*Height*4*SizeOf(TCL_Char),nil,[mfWriteOnly]);
-    MainProgram := CreateProgram(ExtractFilePath(ParamStr(0))+SourceName);
-    Kernel := MainProgram.CreateKernel('render');
-    Kernel.SetArg(0,InputBuffer);
-    Kernel.SetArg(1,OutputBuffer);
-    Kernel.SetArg(2,SizeOf(@Width),@Width);
-    Kernel.SetArg(3,SizeOf(@Height),@Height);
-    CommandQueue.Execute(Kernel,Width*Height);
-    CommandQueue.ReadBuffer(OutputBuffer,Width*Height*4*SizeOf(Byte),@host_image_out[0]);
-    SaveToFile(ExtractFilePath(ParamStr(0))+'Example3.bmp');
-    FreeAndNil(Kernel);
-    FreeAndNil(MainProgram);
-    FreeAndNil(OutputBuffer);
-    FreeAndNil(InputBuffer);
-    FreeAndNil(CommandQueue);
+    CommandQueue := CreateCommandQueue;
+    try
+      InputBuffer := CreateBuffer(Width * Height * 4 * SizeOf(TCL_Char), nil,
+        [mfReadOnly]);
+      CommandQueue.WriteBuffer(InputBuffer, Width * Height * 4 * SizeOf(TCL_Char),
+        @host_image_in[0]);
+      OutputBuffer := CreateBuffer(Width * Height * 4 * SizeOf(TCL_Char), nil,
+        [mfWriteOnly]);
+      MainProgram := CreateProgram(ExtractFilePath(ParamStr(0)) + SourceName);
+
+      // create kernel and specify arguments
+      Kernel := MainProgram.CreateKernel('render');
+      Kernel.SetArg(0, InputBuffer);
+      Kernel.SetArg(1, OutputBuffer);
+      Kernel.SetArg(2, SizeOf(@Width), @Width);
+      Kernel.SetArg(3, SizeOf(@Height), @Height);
+
+      // execute kernel
+      CommandQueue.Execute(Kernel, Width * Height);
+
+      CommandQueue.ReadBuffer(OutputBuffer, Width * Height * 4 * SizeOf(Byte),
+        @host_image_out[0]);
+      SaveToFile(ExtractFilePath(ParamStr(0)) + 'Example3.bmp');
+      FreeAndNil(Kernel);
+      FreeAndNil(MainProgram);
+      FreeAndNil(OutputBuffer);
+      FreeAndNil(InputBuffer);
+    finally
+      FreeAndNil(CommandQueue);
+    end;
   end;
   FreeAndNil(Platforms);
   Writeln('press any key...');

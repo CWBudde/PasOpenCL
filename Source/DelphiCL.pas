@@ -127,7 +127,7 @@ type
     procedure ReadBuffer(const Buffer: TDCLBuffer; const Size: TSize_t; const Data: Pointer);
     procedure WriteBuffer(const Buffer: TDCLBuffer; const Size: TSize_t; const Data: Pointer);
     procedure ReadImage2D(const Image: TDCLImage2D; const Data: Pointer);
-    procedure WriteImage2D(const Image: TDCLImage2D; const Width,Height: TSize_t; const Data: Pointer);
+    procedure WriteImage2D(const Image: TDCLImage2D; const Width, Height: TSize_t; const Data: Pointer);
     procedure Execute(const Kernel: TDCLKernel; const Size: TSize_t); overload;
     procedure Execute(const Kernel: TDCLKernel; //const Device: PCL_device_id;
                       const Size: array of TSize_t);overload;
@@ -146,7 +146,7 @@ type
     destructor Destroy(); override;
   end;
 
-  TArraySize_t = Array of TSize_t;
+  TArraySize_t = array of TSize_t;
 
   PDCLProgram = ^TDCLProgram;
   TDCLProgram = class
@@ -156,7 +156,7 @@ type
     FSource: PAnsiChar;
     FLog: AnsiString;
     FBinarySizes: TSize_t;
-    FBinaries: Array of Array of AnsiChar;
+    FBinaries: array of array of AnsiChar;
   protected
     constructor Create(const Device: PCL_device_id; const Context: PCL_context; const Source: PPAnsiChar; const Options: PAnsiChar = nil);
   public
@@ -186,26 +186,26 @@ type
   end;
 
   TDCLDeviceFPConfig = ({$IFDEF CL_VERSION_1_0}
-                        dfpcDenorm,dfpcInfNan,dfpcRoundToNearest,dfpcRoundToZero,
-                        dfpcRoundToInf,dfpcFMA
+                        dfpcDenorm, dfpcInfNan, dfpcRoundToNearest, dfpcRoundToZero,
+                        dfpcRoundToInf, dfpcFMA
                         {$ENDIF}
                         {$IFDEF CL_VERSION_1_1}
-                        ,dfpcSoftFloat
+                        , dfpcSoftFloat
                         {$ENDIF}
                         {$IFDEF CL_VERSION_1_2}
-                        ,dfpcCorrectlyRoundedDivideSqrt
+                        , dfpcCorrectlyRoundedDivideSqrt
                         {$ENDIF}
                         );
   TDCLDeviceFPConfigSet = Set of TDCLDeviceFPConfig;
 
-  TDCLDeviceExecutionCapabilities = ({$IFDEF CL_VERSION_1_0}decExecKernel,decExecNativeKernel{$ENDIF});
+  TDCLDeviceExecutionCapabilities = ({$IFDEF CL_VERSION_1_0}decExecKernel, decExecNativeKernel{$ENDIF});
   TDCLDeviceExecutionCapabilitiesSet = set of TDCLDeviceExecutionCapabilities;
 
   TDCLDeviceMemCacheType = ({$IFDEF CL_VERSION_1_0}
-                            dmctNone,dmctReadOnlyCache,dmctWriteOnlyCache
+                            dmctNone, dmctReadOnlyCache, dmctWriteOnlyCache
                             {$ENDIF});
   TDCLDeviceLocalMemType = ({$IFDEF CL_VERSION_1_0}
-                            dlmtLocal,dlmtGlobal 
+                            dlmtLocal, dlmtGlobal
                             {$ENDIF});
 
   PDCLDevice = ^TDCLDevice;
@@ -282,7 +282,7 @@ type
     FDriverVersion: AnsiString;
 
     FExtensionsCount: TSize_t;
-    FExtensions: Array of AnsiString;
+    FExtensions: array of AnsiString;
 
     FContext: TDCLContext;
 
@@ -377,7 +377,7 @@ type
 
     function CreateFromGLBuffer(const Data: Pointer = nil; const flags: TDCLMemFlagsSet = [mfWriteOnly]): TDCLBuffer;
 
-    function CreateImage2D(const Format: PCL_image_format; const Width,Height,RowPitch: TSize_t; const Data: Pointer = nil; const flags: TDCLMemFlagsSet = [mfReadWrite]): TDCLImage2D;
+    function CreateImage2D(const Format: PCL_image_format; const Width, Height, RowPitch: TSize_t; const Data: Pointer = nil; const flags: TDCLMemFlagsSet = [mfReadWrite]): TDCLImage2D;
     function CreateFromGLImage2D(const Texture: TGLuint; const Flags: TDCLMemFlagsSet = [mfWriteOnly]): TDCLImage2D;
 
     function CreateProgram(const Source: PPAnsiChar; const Options: PAnsiChar = nil): TDCLProgram; overload;
@@ -402,18 +402,18 @@ type
     FVendor: AnsiString;
     FExtensionsString: AnsiString;
     FStatus: TCL_int;
-    FDevices: Array of TDCLDevice;
+    FDevices: array of TDCLDevice;
     FDeviceCount: TCL_uint;
 
     FCPUs,
     FGPUs,
-    FAccelerators: Array of TCL_uint;
+    FAccelerators: array of TCL_uint;
     FCPUCount,
     FGPUCount,
     FAcceleratorCount: TCL_uint;
 
     FExtensionsCount: TSize_t;
-    FExtensions: Array of AnsiString;
+    FExtensions: array of AnsiString;
     function GetDevice(Index: TCL_uint): PDCLDevice;
     function GetCPU(Index: TCL_uint): PDCLDevice;
     function GetGPU(Index: TCL_uint): PDCLDevice;
@@ -492,7 +492,7 @@ type
   PDCLPlatforms = ^TDCLPlatforms;
   TDCLPlatforms = class
   private
-    FPlatforms: Array of TDCLPlatform;
+    FPlatforms: array of TDCLPlatform;
     FPlatformCount: TCL_uint;
     FStatus: TCL_int;
     function GetPlatform(Index: TCL_uint): PDCLPlatform;
@@ -537,7 +537,7 @@ end;
 {$IFDEF LOGGING}
   procedure WriteLog(const Str: AnsiString);
   begin
-    Writeln(DCLFileLOG,Str);
+    Writeln(DCLFileLOG, Str);
     Flush(DCLFileLOG);
   end;
 {$ENDIF}
@@ -546,31 +546,31 @@ end;
 
 constructor TDCLPlatforms.Create;
 var
-  platforms: Array of PCL_platform_id;
+  platforms: array of PCL_platform_id;
   i: integer;
 begin
-  FStatus := clGetPlatformIDs(0,nil,@FPlatformCount);
+  FStatus := clGetPlatformIDs(0, nil, @FPlatformCount);
   {$IFDEF LOGGING}
-    WriteLog('clGetPlatformIDs: '+GetString(FStatus)+';');
+    WriteLog('clGetPlatformIDs: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('PlatformCount: '+IntToStr(FPlatformCount)+';');
+    WriteLog('PlatformCount: ' + IntToStr(FPlatformCount) + ';');
   {$ENDIF}
   if FStatus=CL_SUCCESS then
   begin
     if FPlatformCount>0 then
     begin
-      SetLength(platforms,FPlatformCount);
-      SetLength(FPlatforms,FPlatformCount);
-      FStatus := clGetPlatformIDs(FPlatformCount,@platforms[0],nil);
+      SetLength(platforms, FPlatformCount);
+      SetLength(FPlatforms, FPlatformCount);
+      FStatus := clGetPlatformIDs(FPlatformCount, @platforms[0], nil);
       {$IFDEF LOGGING}
-        WriteLog('clGetPlatformIDs: '+GetString(FStatus)+';');
+        WriteLog('clGetPlatformIDs: ' + GetString(FStatus) + ';');
       {$ENDIF}
-      for i:=0 to FPlatformCount-1 do
+      for i := 0 to FPlatformCount-1 do
       begin
         FPlatforms[i] := TDCLPlatform.Create(platforms[i]);
       end;
-      SetLength(platforms,0);
+      SetLength(platforms, 0);
     end;
   end;
 end;
@@ -579,12 +579,12 @@ destructor TDCLPlatforms.Destroy;
 var
   i: Integer;
 begin
-  for i:=0 to FPlatformCount-1 do
+  for i := 0 to FPlatformCount-1 do
   begin
     //FPlatforms[i].Free();
     FreeAndNil(FPlatforms[i]);
   end;
-  SetLength(FPlatforms,0);
+  SetLength(FPlatforms, 0);
   inherited;
 end;
 
@@ -599,76 +599,76 @@ end;
 constructor TDCLPlatform.Create(Platform_id: PCL_platform_id);
 var
   Size: TSize_t;
-  devices: Array of PCL_device_id;
+  devices: array of PCL_device_id;
   i, current, previous: integer;
 
 begin
   inherited Create();
   FPlatform_id := Platform_id;
 
-  FStatus := clGetPlatformInfo(FPlatform_id,CL_PLATFORM_PROFILE,0,nil,@Size);
+  FStatus := clGetPlatformInfo(FPlatform_id, CL_PLATFORM_PROFILE, 0, nil, @Size);
   {$IFDEF LOGGING}
-    WriteLog('clGetPlatformInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetPlatformInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
-  SetLength(FProfile,Size);
-  FStatus := clGetPlatformInfo(FPlatform_id,CL_PLATFORM_PROFILE,Size,@FProfile[1],nil);
+  SetLength(FProfile, Size);
+  FStatus := clGetPlatformInfo(FPlatform_id, CL_PLATFORM_PROFILE, Size, @FProfile[1], nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetPlatformInfo: '+GetString(FStatus)+';');
-  {$ENDIF}
-  {$IFDEF LOGGING}
-    WriteLog('CL_PLATFORM_PROFILE: '+FProfile+';');
-  {$ENDIF}
-
-  FStatus := clGetPlatformInfo(FPlatform_id,CL_PLATFORM_VERSION,0,nil,@Size);
-  {$IFDEF LOGGING}
-    WriteLog('clGetPlatformInfo: '+GetString(FStatus)+';');
-  {$ENDIF}
-  SetLength(FVersion,Size);
-  FStatus := clGetPlatformInfo(FPlatform_id,CL_PLATFORM_VERSION,Size,@FVersion[1],nil);
-  {$IFDEF LOGGING}
-    WriteLog('clGetPlatformInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetPlatformInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_PLATFORM_VERSION: '+FVersion+';');
+    WriteLog('CL_PLATFORM_PROFILE: ' + FProfile + ';');
   {$ENDIF}
 
-  FStatus := clGetPlatformInfo(FPlatform_id,CL_PLATFORM_NAME,0,nil,@Size);
+  FStatus := clGetPlatformInfo(FPlatform_id, CL_PLATFORM_VERSION, 0, nil, @Size);
   {$IFDEF LOGGING}
-    WriteLog('clGetPlatformInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetPlatformInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
-  SetLength(FName,Size);
-  FStatus := clGetPlatformInfo(FPlatform_id,CL_PLATFORM_NAME,Size,@FName[1],nil);
+  SetLength(FVersion, Size);
+  FStatus := clGetPlatformInfo(FPlatform_id, CL_PLATFORM_VERSION, Size, @FVersion[1], nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetPlatformInfo: '+GetString(FStatus)+';');
-  {$ENDIF}
-  {$IFDEF LOGGING}
-    WriteLog('CL_PLATFORM_NAME: '+FName+';');
-  {$ENDIF}
-
-  FStatus := clGetPlatformInfo(FPlatform_id,CL_PLATFORM_VENDOR,0,nil,@Size);
-  {$IFDEF LOGGING}
-    WriteLog('clGetPlatformInfo: '+GetString(FStatus)+';');
-  {$ENDIF}
-  SetLength(FVendor,Size);
-  FStatus := clGetPlatformInfo(FPlatform_id,CL_PLATFORM_VENDOR,Size,@FVendor[1],nil);
-  {$IFDEF LOGGING}
-    WriteLog('clGetPlatformInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetPlatformInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CCL_PLATFORM_VENDOR: '+FVendor+';');
+    WriteLog('CL_PLATFORM_VERSION: ' + FVersion + ';');
   {$ENDIF}
 
-  FStatus := clGetPlatformInfo(FPlatform_id,CL_PLATFORM_EXTENSIONS,0,nil,@Size);
+  FStatus := clGetPlatformInfo(FPlatform_id, CL_PLATFORM_NAME, 0, nil, @Size);
   {$IFDEF LOGGING}
-    WriteLog('clGetPlatformInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetPlatformInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
-  SetLength(FExtensionsString,Size);
-  FStatus := clGetPlatformInfo(FPlatform_id,CL_PLATFORM_EXTENSIONS,Size,@FExtensionsString[1],nil);
+  SetLength(FName, Size);
+  FStatus := clGetPlatformInfo(FPlatform_id, CL_PLATFORM_NAME, Size, @FName[1], nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetPlatformInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetPlatformInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_PLATFORM_EXTENSIONS: '+FExtensionsString+';');
+    WriteLog('CL_PLATFORM_NAME: ' + FName + ';');
+  {$ENDIF}
+
+  FStatus := clGetPlatformInfo(FPlatform_id, CL_PLATFORM_VENDOR, 0, nil, @Size);
+  {$IFDEF LOGGING}
+    WriteLog('clGetPlatformInfo: ' + GetString(FStatus) + ';');
+  {$ENDIF}
+  SetLength(FVendor, Size);
+  FStatus := clGetPlatformInfo(FPlatform_id, CL_PLATFORM_VENDOR, Size, @FVendor[1], nil);
+  {$IFDEF LOGGING}
+    WriteLog('clGetPlatformInfo: ' + GetString(FStatus) + ';');
+  {$ENDIF}
+  {$IFDEF LOGGING}
+    WriteLog('CCL_PLATFORM_VENDOR: ' + FVendor + ';');
+  {$ENDIF}
+
+  FStatus := clGetPlatformInfo(FPlatform_id, CL_PLATFORM_EXTENSIONS, 0, nil, @Size);
+  {$IFDEF LOGGING}
+    WriteLog('clGetPlatformInfo: ' + GetString(FStatus) + ';');
+  {$ENDIF}
+  SetLength(FExtensionsString, Size);
+  FStatus := clGetPlatformInfo(FPlatform_id, CL_PLATFORM_EXTENSIONS, Size, @FExtensionsString[1], nil);
+  {$IFDEF LOGGING}
+    WriteLog('clGetPlatformInfo: ' + GetString(FStatus) + ';');
+  {$ENDIF}
+  {$IFDEF LOGGING}
+    WriteLog('CL_PLATFORM_EXTENSIONS: ' + FExtensionsString + ';');
   {$ENDIF}
 
   FExtensionsCount := 0;
@@ -678,7 +678,7 @@ begin
     if ((FExtensionsString[i]=' ') or (FExtensionsString[i]=#0)) then Inc(FExtensionsCount);
     inc(i);
   end;
-  SetLength(FExtensions,FExtensionsCount);
+  SetLength(FExtensions, FExtensionsCount);
   previous := 1;
   current := 1;
   i := 0;
@@ -686,19 +686,19 @@ begin
   begin
     if ((FExtensionsString[current]=' ') or (FExtensionsString[current]=#0)) then
     begin
-      FExtensions[i] := UpperCase( Copy(FExtensionsString,previous,current-previous-1));
-      previous := current+1;
+      FExtensions[i] := UpperCase( Copy(FExtensionsString, previous, current-previous-1));
+      previous := current + 1;
       inc(i);
     end;
     inc(current);
   end;
 
-  FStatus := clGetDeviceIDs(FPlatform_id,CL_DEVICE_TYPE_ALL,0,nil,@FDeviceCount);
+  FStatus := clGetDeviceIDs(FPlatform_id, CL_DEVICE_TYPE_ALL, 0, nil, @FDeviceCount);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceIDs: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceIDs: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('FDeviceCount: '+IntToStr(FDeviceCount)+';');
+    WriteLog('FDeviceCount: ' + IntToStr(FDeviceCount) + ';');
   {$ENDIF}
 
   FCPUCount := 0;
@@ -706,39 +706,39 @@ begin
   FAcceleratorCount := 0;
   if FDeviceCount>0 then
   begin
-    SetLength(devices,FDeviceCount);
-    FStatus := clGetDeviceIDs(FPlatform_id,CL_DEVICE_TYPE_ALL,FDeviceCount,@devices[0],nil);
+    SetLength(devices, FDeviceCount);
+    FStatus := clGetDeviceIDs(FPlatform_id, CL_DEVICE_TYPE_ALL, FDeviceCount, @devices[0], nil);
     {$IFDEF LOGGING}
-      WriteLog('clGetDeviceIDs: '+GetString(FStatus)+';');
+      WriteLog('clGetDeviceIDs: ' + GetString(FStatus) + ';');
     {$ENDIF}
-    SetLength(FDevices,FDeviceCount);
-    for i:=0 to FDeviceCount-1 do
+    SetLength(FDevices, FDeviceCount);
+    for i := 0 to FDeviceCount-1 do
     begin
       {$IFDEF LOGGING}
-        WriteLog('FDevice: '+IntToStr(i)+';');
+        WriteLog('FDevice: ' + IntToStr(i) + ';');
       {$ENDIF}
       FDevices[i] := TDCLDevice.Create(devices[i]);
       if FDevices[i].IsCPU then
       begin
         Inc(FCPUCount);
-        SetLength(FCPUs,FCPUCount);
+        SetLength(FCPUs, FCPUCount);
         FCPUs[FCPUCount-1] := i;
       end;
       if FDevices[i].IsGPU then
       begin
         Inc(FGPUCount);
-        SetLength(FGPUs,FGPUCount);
+        SetLength(FGPUs, FGPUCount);
         FGPUs[FGPUCount-1] := i;
       end;
 
       if FDevices[i].IsAccelerator then
       begin
         Inc(FAcceleratorCount);
-        SetLength(FAccelerators,FAcceleratorCount);
+        SetLength(FAccelerators, FAcceleratorCount);
         FAccelerators[FAcceleratorCount-1] := i;
       end;
     end;
-    SetLength(devices,0);
+    SetLength(devices, 0);
   end;
 
 end;
@@ -747,24 +747,24 @@ destructor TDCLPlatform.Destroy;
 var
   i: integer;
 begin
-  SetLength(FExtensions,0);
+  SetLength(FExtensions, 0);
   FExtensionsString := '';
   FProfile := '';
   FVersion := '';
   FName := '';
   FVendor := '';
 
-  for i:=0 to FDeviceCount-1 do
+  for i := 0 to FDeviceCount-1 do
   begin
     FreeAndNil(FDevices[i]);
     //FDevices[i].Free();
   end;
 
-  SetLength(FCPUs,0);
-  SetLength(FGPUs,0);
-  SetLength(FAccelerators,0);
+  SetLength(FCPUs, 0);
+  SetLength(FGPUs, 0);
+  SetLength(FAccelerators, 0);
 
-  SetLength(FDevices,0);
+  SetLength(FDevices, 0);
   inherited;
 end;
 
@@ -803,7 +803,7 @@ begin
   end;
   MaxValue := GetParameterDevice(FDevices[0]);
   MaxValuePos := 0;
-  for i:=1 to FDeviceCount-1 do
+  for i := 1 to FDeviceCount-1 do
   begin
     if GetParameterDevice(FDevices[i])>MaxValue then
     begin
@@ -831,7 +831,7 @@ begin
   end;
   MaxValue := GetParameterDevice(FDevices[0]);
   MaxValuePos := 0;
-  for i:=1 to FDeviceCount-1 do
+  for i := 1 to FDeviceCount-1 do
   begin
     if GetParameterDevice(FDevices[i])>MaxValue then
     begin
@@ -859,7 +859,7 @@ begin
   end;
   MaxValue := GetParameterDevice(FDevices[0]);
   MaxValuePos := 0;
-  for i:=1 to FDeviceCount-1 do
+  for i := 1 to FDeviceCount-1 do
   begin
     if GetParameterDevice(FDevices[i])>MaxValue then
     begin
@@ -887,7 +887,7 @@ begin
   end;
   MaxValue := GetParameterDevice(FDevices[0]);
   MaxValuePos := 0;
-  for i:=1 to FDeviceCount-1 do
+  for i := 1 to FDeviceCount-1 do
   begin
     if GetParameterDevice(FDevices[i])>MaxValue then
     begin
@@ -915,7 +915,7 @@ begin
   end;
   MaxValue := GetParameterDevice(FDevices[0]);
   MaxValuePos := 0;
-  for i:=1 to FDeviceCount-1 do
+  for i := 1 to FDeviceCount-1 do
   begin
     if GetParameterDevice(FDevices[i])>MaxValue then
     begin
@@ -943,7 +943,7 @@ begin
   end;
   MaxValue := GetParameterDevice(FDevices[0]);
   MaxValuePos := 0;
-  for i:=1 to FDeviceCount-1 do
+  for i := 1 to FDeviceCount-1 do
   begin
     if GetParameterDevice(FDevices[i])>MaxValue then
     begin
@@ -971,7 +971,7 @@ begin
   end;
   MaxValue := GetParameterDevice(FDevices[0]);
   MaxValuePos := 0;
-  for i:=1 to FDeviceCount-1 do
+  for i := 1 to FDeviceCount-1 do
   begin
     if GetParameterDevice(FDevices[i])>MaxValue then
     begin
@@ -999,7 +999,7 @@ begin
   end;
   MaxValue := GetParameterDevice(FDevices[0]);
   MaxValuePos := 0;
-  for i:=1 to FDeviceCount-1 do
+  for i := 1 to FDeviceCount-1 do
   begin
     if GetParameterDevice(FDevices[i])>MaxValue then
     begin
@@ -1027,7 +1027,7 @@ begin
   end;
   MaxValue := GetParameterDevice(FDevices[0]);
   MaxValuePos := 0;
-  for i:=1 to FDeviceCount-1 do
+  for i := 1 to FDeviceCount-1 do
   begin
     if GetParameterDevice(FDevices[i])>MaxValue then
     begin
@@ -1055,7 +1055,7 @@ begin
   end;
   MaxValue := GetParameterDevice(FDevices[0]);
   MaxValuePos := 0;
-  for i:=1 to FDeviceCount-1 do
+  for i := 1 to FDeviceCount-1 do
   begin
     if GetParameterDevice(FDevices[i])>MaxValue then
     begin
@@ -1083,7 +1083,7 @@ begin
   end;
   MaxValue := GetParameterDevice(FDevices[0]);
   MaxValuePos := 0;
-  for i:=1 to FDeviceCount-1 do
+  for i := 1 to FDeviceCount-1 do
   begin
     if GetParameterDevice(FDevices[i])>MaxValue then
     begin
@@ -1111,7 +1111,7 @@ begin
   end;
   MaxValue := GetParameterDevice(FDevices[0]);
   MaxValuePos := 0;
-  for i:=1 to FDeviceCount-1 do
+  for i := 1 to FDeviceCount-1 do
   begin
     if GetParameterDevice(FDevices[i])>MaxValue then
     begin
@@ -1139,7 +1139,7 @@ begin
   end;
   MaxValue := GetParameterDevice(FDevices[0]);
   MaxValuePos := 0;
-  for i:=1 to FDeviceCount-1 do
+  for i := 1 to FDeviceCount-1 do
   begin
     if GetParameterDevice(FDevices[i])>MaxValue then
     begin
@@ -1167,7 +1167,7 @@ begin
   end;
   MaxValue := GetParameterDevice(FDevices[0]);
   MaxValuePos := 0;
-  for i:=1 to FDeviceCount-1 do
+  for i := 1 to FDeviceCount-1 do
   begin
     if GetParameterDevice(FDevices[i])>MaxValue then
     begin
@@ -1195,7 +1195,7 @@ begin
   end;
   MaxValue := GetParameterDevice(FDevices[0]);
   MaxValuePos := 0;
-  for i:=1 to FDeviceCount-1 do
+  for i := 1 to FDeviceCount-1 do
   begin
     if GetParameterDevice(FDevices[i])>MaxValue then
     begin
@@ -1223,7 +1223,7 @@ begin
   end;
   MaxValue := GetParameterDevice(FDevices[0]);
   MaxValuePos := 0;
-  for i:=1 to FDeviceCount-1 do
+  for i := 1 to FDeviceCount-1 do
   begin
     if GetParameterDevice(FDevices[i])>MaxValue then
     begin
@@ -1251,7 +1251,7 @@ begin
   end;
   MaxValue := GetParameterDevice(FDevices[0]);
   MaxValuePos := 0;
-  for i:=1 to FDeviceCount-1 do
+  for i := 1 to FDeviceCount-1 do
   begin
     if GetParameterDevice(FDevices[i])>MaxValue then
     begin
@@ -1279,7 +1279,7 @@ begin
   end;
   MaxValue := GetParameterDevice(FDevices[0]);
   MaxValuePos := 0;
-  for i:=1 to FDeviceCount-1 do
+  for i := 1 to FDeviceCount-1 do
   begin
     if GetParameterDevice(FDevices[i])>MaxValue then
     begin
@@ -1307,7 +1307,7 @@ begin
   end;
   MaxValue := GetParameterDevice(FDevices[0]);
   MaxValuePos := 0;
-  for i:=1 to FDeviceCount-1 do
+  for i := 1 to FDeviceCount-1 do
   begin
     if GetParameterDevice(FDevices[i])>MaxValue then
     begin
@@ -1335,7 +1335,7 @@ begin
   end;
   MaxValue := GetParameterDevice(FDevices[0]);
   MaxValuePos := 0;
-  for i:=1 to FDeviceCount-1 do
+  for i := 1 to FDeviceCount-1 do
   begin
     if GetParameterDevice(FDevices[i])>MaxValue then
     begin
@@ -1366,7 +1366,7 @@ var
 begin
   Result := False;
   UppName := UpperCase(ExtensionName);
-  for i:=0 to High(FExtensions) do
+  for i := 0 to High(FExtensions) do
   begin
     if FExtensions[i]=UppName then
     begin
@@ -1400,60 +1400,60 @@ begin
 
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_NAME, 0, nil, @Size);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
-  SetLength(FName,Size);
+  SetLength(FName, Size);
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_NAME, Size, @FName[1], nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_NAME: '+FName+';');
+    WriteLog('CL_DEVICE_NAME: ' + FName + ';');
   {$ENDIF}
 
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_VENDOR, 0, nil, @Size);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
-  SetLength(FVendor,Size);
+  SetLength(FVendor, Size);
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_VENDOR, Size, @FVendor[1], nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_VENDOR: '+FVendor+';');
+    WriteLog('CL_DEVICE_VENDOR: ' + FVendor + ';');
   {$ENDIF}
 
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_VERSION, 0, nil, @Size);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
-  SetLength(FVersion,Size);
+  SetLength(FVersion, Size);
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_VERSION, Size, @FVersion[1], nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_VERSION: '+FVersion+';');
+    WriteLog('CL_DEVICE_VERSION: ' + FVersion + ';');
   {$ENDIF}
 
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_PROFILE, 0, nil, @Size);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
-  SetLength(FProfile,Size);
+  SetLength(FProfile, Size);
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_PROFILE, Size, @FProfile[1], nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_PROFILE: '+FProfile+';');
+    WriteLog('CL_DEVICE_PROFILE: ' + FProfile + ';');
   {$ENDIF}
 
 
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_TYPE, SizeOf(device_type), @device_type, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   if (device_type and CL_DEVICE_TYPE_CPU)<>0 then
   begin
@@ -1486,353 +1486,353 @@ begin
 
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_PREFERRED_VECTOR_WIDTH_CHAR  , SizeOf(FMaxWorkGroupSize), @FMaxWorkGroupSize, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_PREFERRED_VECTOR_WIDTH_CHAR: '+IntToStr(FMaxWorkGroupSize)+';');
+    WriteLog('CL_DEVICE_PREFERRED_VECTOR_WIDTH_CHAR: ' + IntToStr(FMaxWorkGroupSize) + ';');
   {$ENDIF}
 
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_PREFERRED_VECTOR_WIDTH_CHAR , SizeOf(FNativeVectorPreferredChar), @FNativeVectorPreferredChar, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_PREFERRED_VECTOR_WIDTH_CHAR: '+IntToStr(FNativeVectorPreferredChar)+';');
+    WriteLog('CL_DEVICE_PREFERRED_VECTOR_WIDTH_CHAR: ' + IntToStr(FNativeVectorPreferredChar) + ';');
   {$ENDIF}
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_PREFERRED_VECTOR_WIDTH_SHORT , SizeOf(FNativeVectorPreferredShort), @FNativeVectorPreferredShort, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_PREFERRED_VECTOR_WIDTH_SHORT: '+IntToStr(FNativeVectorPreferredShort)+';');
+    WriteLog('CL_DEVICE_PREFERRED_VECTOR_WIDTH_SHORT: ' + IntToStr(FNativeVectorPreferredShort) + ';');
   {$ENDIF}
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_PREFERRED_VECTOR_WIDTH_INT , SizeOf(FNativeVectorPreferredInt), @FNativeVectorPreferredInt, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_PREFERRED_VECTOR_WIDTH_INT: '+IntToStr(FNativeVectorPreferredInt)+';');
+    WriteLog('CL_DEVICE_PREFERRED_VECTOR_WIDTH_INT: ' + IntToStr(FNativeVectorPreferredInt) + ';');
   {$ENDIF}
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_PREFERRED_VECTOR_WIDTH_LONG , SizeOf(FNativeVectorPreferredLong), @FNativeVectorPreferredLong, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog(' CL_DEVICE_PREFERRED_VECTOR_WIDTH_LONG: '+IntToStr(FNativeVectorPreferredLong)+';');
+    WriteLog(' CL_DEVICE_PREFERRED_VECTOR_WIDTH_LONG: ' + IntToStr(FNativeVectorPreferredLong) + ';');
   {$ENDIF}
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_PREFERRED_VECTOR_WIDTH_FLOAT , SizeOf(FNativeVectorPreferredFloat), @FNativeVectorPreferredFloat, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_PREFERRED_VECTOR_WIDTH_FLOAT: '+IntToStr(FNativeVectorPreferredFloat)+';');
+    WriteLog('CL_DEVICE_PREFERRED_VECTOR_WIDTH_FLOAT: ' + IntToStr(FNativeVectorPreferredFloat) + ';');
   {$ENDIF}
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_PREFERRED_VECTOR_WIDTH_DOUBLE , SizeOf(FNativeVectorPreferredDouble), @FNativeVectorPreferredDouble, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_PREFERRED_VECTOR_WIDTH_DOUBLE: '+IntToStr(FNativeVectorPreferredDouble)+';');
+    WriteLog('CL_DEVICE_PREFERRED_VECTOR_WIDTH_DOUBLE: ' + IntToStr(FNativeVectorPreferredDouble) + ';');
   {$ENDIF}
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_PREFERRED_VECTOR_WIDTH_HALF , SizeOf(FNativeVectorPreferredHalf), @FNativeVectorPreferredHalf, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_PREFERRED_VECTOR_WIDTH_HALF: '+IntToStr(FNativeVectorPreferredHalf)+';');
+    WriteLog('CL_DEVICE_PREFERRED_VECTOR_WIDTH_HALF: ' + IntToStr(FNativeVectorPreferredHalf) + ';');
   {$ENDIF}
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_NATIVE_VECTOR_WIDTH_CHAR , SizeOf(FNativeVectorWidthChar), @FNativeVectorWidthChar, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_NATIVE_VECTOR_WIDTH_CHAR: '+IntToStr(FNativeVectorWidthChar)+';');
+    WriteLog('CL_DEVICE_NATIVE_VECTOR_WIDTH_CHAR: ' + IntToStr(FNativeVectorWidthChar) + ';');
   {$ENDIF}
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_NATIVE_VECTOR_WIDTH_SHORT , SizeOf(FNativeVectorWidthShort), @FNativeVectorWidthShort, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_NATIVE_VECTOR_WIDTH_SHORT: '+IntToStr(FNativeVectorWidthShort)+';');
+    WriteLog('CL_DEVICE_NATIVE_VECTOR_WIDTH_SHORT: ' + IntToStr(FNativeVectorWidthShort) + ';');
   {$ENDIF}
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_NATIVE_VECTOR_WIDTH_INT , SizeOf(FNativeVectorWidthInt), @FNativeVectorWidthInt, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_NATIVE_VECTOR_WIDTH_INT: '+IntToStr(FNativeVectorWidthInt)+';');
+    WriteLog('CL_DEVICE_NATIVE_VECTOR_WIDTH_INT: ' + IntToStr(FNativeVectorWidthInt) + ';');
   {$ENDIF}
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_NATIVE_VECTOR_WIDTH_LONG , SizeOf(FNativeVectorWidthLong), @FNativeVectorWidthLong, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_NATIVE_VECTOR_WIDTH_LONG: '+IntToStr(FNativeVectorWidthLong)+';');
+    WriteLog('CL_DEVICE_NATIVE_VECTOR_WIDTH_LONG: ' + IntToStr(FNativeVectorWidthLong) + ';');
   {$ENDIF}
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_NATIVE_VECTOR_WIDTH_FLOAT , SizeOf(FNativeVectorWidthFloat), @FNativeVectorWidthFloat, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_NATIVE_VECTOR_WIDTH_FLOAT: '+IntToStr(FNativeVectorWidthFloat)+';');
+    WriteLog('CL_DEVICE_NATIVE_VECTOR_WIDTH_FLOAT: ' + IntToStr(FNativeVectorWidthFloat) + ';');
   {$ENDIF}
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_NATIVE_VECTOR_WIDTH_DOUBLE , SizeOf(FNativeVectorWidthDouble), @FNativeVectorWidthDouble, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_NATIVE_VECTOR_WIDTH_DOUBLE: '+IntToStr(FNativeVectorWidthDouble)+';');
+    WriteLog('CL_DEVICE_NATIVE_VECTOR_WIDTH_DOUBLE: ' + IntToStr(FNativeVectorWidthDouble) + ';');
   {$ENDIF}
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_NATIVE_VECTOR_WIDTH_HALF , SizeOf(FNativeVectorWidthHalf), @FNativeVectorWidthHalf, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_NATIVE_VECTOR_WIDTH_HALF: '+IntToStr(FNativeVectorWidthHalf)+';');
+    WriteLog('CL_DEVICE_NATIVE_VECTOR_WIDTH_HALF: ' + IntToStr(FNativeVectorWidthHalf) + ';');
   {$ENDIF}
 
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_MAX_CLOCK_FREQUENCY , SizeOf(FMaxClockFrequency), @FMaxClockFrequency, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_MAX_CLOCK_FREQUENCY: '+IntToStr(FMaxClockFrequency)+';');
+    WriteLog('CL_DEVICE_MAX_CLOCK_FREQUENCY: ' + IntToStr(FMaxClockFrequency) + ';');
   {$ENDIF}
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_ADDRESS_BITS , SizeOf(FAddressBits), @FAddressBits, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_ADDRESS_BITS: '+IntToStr(FAddressBits)+';');
+    WriteLog('CL_DEVICE_ADDRESS_BITS: ' + IntToStr(FAddressBits) + ';');
   {$ENDIF}
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_MAX_MEM_ALLOC_SIZE , SizeOf(FMaxMemAllocSize), @FMaxMemAllocSize, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_MAX_MEM_ALLOC_SIZE: '+IntToStr(FMaxMemAllocSize)+';');
+    WriteLog('CL_DEVICE_MAX_MEM_ALLOC_SIZE: ' + IntToStr(FMaxMemAllocSize) + ';');
   {$ENDIF}
 
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_IMAGE_SUPPORT , SizeOf(b_bool), @b_bool, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_IMAGE_SUPPORT: '+IntToStr(b_bool)+';');
+    WriteLog('CL_DEVICE_IMAGE_SUPPORT: ' + IntToStr(b_bool) + ';');
   {$ENDIF}
   FIsImageSupport := Boolean(b_bool);
 
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_MAX_READ_IMAGE_ARGS , SizeOf(FMaxReadImageArgs), @FMaxReadImageArgs, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_MAX_READ_IMAGE_ARGS: '+IntToStr(FMaxReadImageArgs)+';');
+    WriteLog('CL_DEVICE_MAX_READ_IMAGE_ARGS: ' + IntToStr(FMaxReadImageArgs) + ';');
   {$ENDIF}
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_MAX_WRITE_IMAGE_ARGS , SizeOf(FMaxWriteImageArgs), @FMaxWriteImageArgs, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_MAX_WRITE_IMAGE_ARGS: '+IntToStr(FMaxWriteImageArgs)+';');
+    WriteLog('CL_DEVICE_MAX_WRITE_IMAGE_ARGS: ' + IntToStr(FMaxWriteImageArgs) + ';');
   {$ENDIF}
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_IMAGE2D_MAX_WIDTH , SizeOf(FImage2DMaxWidth), @FImage2DMaxWidth, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_IMAGE2D_MAX_WIDTH: '+IntToStr(FImage2DMaxWidth)+';');
+    WriteLog('CL_DEVICE_IMAGE2D_MAX_WIDTH: ' + IntToStr(FImage2DMaxWidth) + ';');
   {$ENDIF}
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_IMAGE2D_MAX_HEIGHT , SizeOf(FImage2DMaxHeight), @FImage2DMaxHeight, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_IMAGE2D_MAX_HEIGHT: '+IntToStr(FImage2DMaxHeight)+';');
+    WriteLog('CL_DEVICE_IMAGE2D_MAX_HEIGHT: ' + IntToStr(FImage2DMaxHeight) + ';');
   {$ENDIF}
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_IMAGE3D_MAX_WIDTH , SizeOf(FImage3DMaxWidth), @FImage3DMaxWidth, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_IMAGE3D_MAX_WIDTH: '+IntToStr(FImage3DMaxWidth)+';');
+    WriteLog('CL_DEVICE_IMAGE3D_MAX_WIDTH: ' + IntToStr(FImage3DMaxWidth) + ';');
   {$ENDIF}
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_IMAGE3D_MAX_HEIGHT , SizeOf(FImage3DMaxHeight), @FImage3DMaxHeight, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_IMAGE3D_MAX_HEIGHT: '+IntToStr(FImage3DMaxHeight)+';');
+    WriteLog('CL_DEVICE_IMAGE3D_MAX_HEIGHT: ' + IntToStr(FImage3DMaxHeight) + ';');
   {$ENDIF}
 
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_IMAGE3D_MAX_DEPTH , SizeOf(FImage3DMaxDepth), @FImage3DMaxDepth, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_IMAGE3D_MAX_DEPTH: '+IntToStr(FImage3DMaxDepth)+';');
+    WriteLog('CL_DEVICE_IMAGE3D_MAX_DEPTH: ' + IntToStr(FImage3DMaxDepth) + ';');
   {$ENDIF}
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_MAX_SAMPLERS , SizeOf(FMaxSamplers), @FMaxSamplers, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_MAX_SAMPLERS: '+IntToStr(FMaxSamplers)+';');
+    WriteLog('CL_DEVICE_MAX_SAMPLERS: ' + IntToStr(FMaxSamplers) + ';');
   {$ENDIF}
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_MAX_PARAMETER_SIZE , SizeOf(FMaxParameterSize), @FMaxParameterSize, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_MAX_PARAMETER_SIZE: '+IntToStr(FMaxParameterSize)+';');
+    WriteLog('CL_DEVICE_MAX_PARAMETER_SIZE: ' + IntToStr(FMaxParameterSize) + ';');
   {$ENDIF}
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_MEM_BASE_ADDR_ALIGN , SizeOf(FMemBaseAddrAlign), @FMemBaseAddrAlign, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_MEM_BASE_ADDR_ALIGN: '+IntToStr(FMemBaseAddrAlign)+';');
+    WriteLog('CL_DEVICE_MEM_BASE_ADDR_ALIGN: ' + IntToStr(FMemBaseAddrAlign) + ';');
   {$ENDIF}
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_MIN_DATA_TYPE_ALIGN_SIZE , SizeOf(FMinDataTypeAlignSize), @FMinDataTypeAlignSize, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_MIN_DATA_TYPE_ALIGN_SIZE: '+IntToStr(FMinDataTypeAlignSize)+';');
+    WriteLog('CL_DEVICE_MIN_DATA_TYPE_ALIGN_SIZE: ' + IntToStr(FMinDataTypeAlignSize) + ';');
   {$ENDIF}
 
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_GLOBAL_MEM_CACHELINE_SIZE , SizeOf(FGlobalMemCacheLineSize), @FGlobalMemCacheLineSize, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_GLOBAL_MEM_CACHELINE_SIZE: '+IntToStr(FGlobalMemCacheLineSize)+';');
+    WriteLog('CL_DEVICE_GLOBAL_MEM_CACHELINE_SIZE: ' + IntToStr(FGlobalMemCacheLineSize) + ';');
   {$ENDIF}
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_GLOBAL_MEM_CACHE_SIZE , SizeOf(FGlobalMemCacheSize), @FGlobalMemCacheSize, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_GLOBAL_MEM_CACHE_SIZE: '+IntToStr(FGlobalMemCacheSize)+';');
+    WriteLog('CL_DEVICE_GLOBAL_MEM_CACHE_SIZE: ' + IntToStr(FGlobalMemCacheSize) + ';');
   {$ENDIF}
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_GLOBAL_MEM_SIZE  , SizeOf(FGlobalMemSize), @FGlobalMemSize, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_GLOBAL_MEM_SIZE: '+IntToStr(FGlobalMemSize)+';');
+    WriteLog('CL_DEVICE_GLOBAL_MEM_SIZE: ' + IntToStr(FGlobalMemSize) + ';');
   {$ENDIF}
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE , SizeOf(FMaxConstantBufferSize), @FMaxConstantBufferSize, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE: '+IntToStr(FMaxConstantBufferSize)+';');
+    WriteLog('CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE: ' + IntToStr(FMaxConstantBufferSize) + ';');
   {$ENDIF}
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_MAX_CONSTANT_ARGS , SizeOf(FMaxConstantArgs), @FMaxConstantArgs, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_MAX_CONSTANT_ARGS: '+IntToStr(FMaxConstantArgs)+';');
+    WriteLog('CL_DEVICE_MAX_CONSTANT_ARGS: ' + IntToStr(FMaxConstantArgs) + ';');
   {$ENDIF}
 
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_LOCAL_MEM_SIZE , SizeOf(FLocalMemSize), @FLocalMemSize, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_LOCAL_MEM_SIZE: '+IntToStr(FLocalMemSize)+';');
+    WriteLog('CL_DEVICE_LOCAL_MEM_SIZE: ' + IntToStr(FLocalMemSize) + ';');
   {$ENDIF}
 
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_ERROR_CORRECTION_SUPPORT , SizeOf(b_bool), @b_bool, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_ERROR_CORRECTION_SUPPORT: '+IntToStr(b_bool)+';');
+    WriteLog('CL_DEVICE_ERROR_CORRECTION_SUPPORT: ' + IntToStr(b_bool) + ';');
   {$ENDIF}
   FIsErrorCorrectionSupport := Boolean(b_bool);
 
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_HOST_UNIFIED_MEMORY , SizeOf(b_bool), @b_bool, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_HOST_UNIFIED_MEMORY: '+IntToStr(b_bool)+';');
+    WriteLog('CL_DEVICE_HOST_UNIFIED_MEMORY: ' + IntToStr(b_bool) + ';');
   {$ENDIF}
   FIsHostUnifiedMemory := Boolean(b_bool);
 
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_PROFILING_TIMER_RESOLUTION , SizeOf(FProfilingTimerResolution), @FProfilingTimerResolution, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_PROFILING_TIMER_RESOLUTION: '+IntToStr(FProfilingTimerResolution)+';');
+    WriteLog('CL_DEVICE_PROFILING_TIMER_RESOLUTION: ' + IntToStr(FProfilingTimerResolution) + ';');
   {$ENDIF}
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_ENDIAN_LITTLE , SizeOf(b_bool), @b_bool, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_ENDIAN_LITTLE: '+IntToStr(b_bool)+';');
+    WriteLog('CL_DEVICE_ENDIAN_LITTLE: ' + IntToStr(b_bool) + ';');
   {$ENDIF}
   FIsEndianLittle := Boolean(b_bool);
 
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_AVAILABLE , SizeOf(b_bool), @b_bool, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_AVAILABLE: '+IntToStr(b_bool)+';');
+    WriteLog('CL_DEVICE_AVAILABLE: ' + IntToStr(b_bool) + ';');
   {$ENDIF}
   FIsAvailable := Boolean(b_bool);
 
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_COMPILER_AVAILABLE , SizeOf(b_bool), @b_bool, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_COMPILER_AVAILABLE: '+IntToStr(b_bool)+';');
+    WriteLog('CL_DEVICE_COMPILER_AVAILABLE: ' + IntToStr(b_bool) + ';');
   {$ENDIF}
   FIsCompilerAvailable := Boolean(b_bool);
 
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_VENDOR_ID , SizeOf(FVendorId), @FVendorId, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_VENDOR_ID: '+IntToStr(FVendorId)+';');
+    WriteLog('CL_DEVICE_VENDOR_ID: ' + IntToStr(FVendorId) + ';');
   {$ENDIF}
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_MAX_COMPUTE_UNITS , SizeOf(FMaxComputeUnits), @FMaxComputeUnits, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_MAX_COMPUTE_UNITS: '+IntToStr(FMaxComputeUnits)+';');
+    WriteLog('CL_DEVICE_MAX_COMPUTE_UNITS: ' + IntToStr(FMaxComputeUnits) + ';');
   {$ENDIF}
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS , SizeOf(FMaxWorkItemDimensions), @FMaxWorkItemDimensions, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS: '+IntToStr(FMaxWorkItemDimensions)+';');
+    WriteLog('CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS: ' + IntToStr(FMaxWorkItemDimensions) + ';');
   {$ENDIF}
 
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_EXTENSIONS, 0, nil, @Size);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_EXTENSIONS: '+IntToStr(Size)+';');
+    WriteLog('CL_DEVICE_EXTENSIONS: ' + IntToStr(Size) + ';');
   {$ENDIF}
-  SetLength(FExtensionsString,Size);
+  SetLength(FExtensionsString, Size);
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_EXTENSIONS, Size, @FExtensionsString[1], nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_EXTENSIONS: '+FExtensionsString+';');
+    WriteLog('CL_DEVICE_EXTENSIONS: ' + FExtensionsString + ';');
   {$ENDIF}
 
   FExtensionsCount := 0;
@@ -1852,7 +1852,7 @@ begin
     end;
     inc(i);
   end;
-  SetLength(FExtensions,FExtensionsCount);
+  SetLength(FExtensions, FExtensionsCount);
   previous := 1;
   current := 1;
   i := 0;
@@ -1860,8 +1860,8 @@ begin
   begin
     if ((FExtensionsString[current]=AnsiString(' ')) or (FExtensionsString[current]=#0)) then
     begin
-      if (current>previous) then FExtensions[i] := UpperCase( Copy(FExtensionsString,previous,current-previous-1));
-      previous := current+1;
+      if (current>previous) then FExtensions[i] := UpperCase( Copy(FExtensionsString, previous, current-previous-1));
+      previous := current + 1;
       inc(i);
     end;
     inc(current);
@@ -1869,76 +1869,76 @@ begin
 
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_OPENCL_C_VERSION, 0, nil, @Size);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
 
-  SetLength(FOpenCLCVersion,Size);
+  SetLength(FOpenCLCVersion, Size);
   FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_OPENCL_C_VERSION, Size, @FOpenCLCVersion[1], nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DEVICE_OPENCL_C_VERSION: '+FOpenCLCVersion+';');
+    WriteLog('CL_DEVICE_OPENCL_C_VERSION: ' + FOpenCLCVersion + ';');
   {$ENDIF}
 
   FStatus := clGetDeviceInfo(FDevice_id, CL_DRIVER_VERSION, 0, nil, @Size);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
-  SetLength(FDriverVersion,Size);
+  SetLength(FDriverVersion, Size);
   FStatus := clGetDeviceInfo(FDevice_id, CL_DRIVER_VERSION, Size, @FDriverVersion[1], nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_DRIVER_VERSION: '+FDriverVersion+';');
+    WriteLog('CL_DRIVER_VERSION: ' + FDriverVersion + ';');
   {$ENDIF}
-  FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_SINGLE_FP_CONFIG, SizeOf(fp_config),@fp_config,nil);
+  FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_SINGLE_FP_CONFIG, SizeOf(fp_config), @fp_config, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
-    WriteLog('CL_DEVICE_SINGLE_FP_CONFIG: '+IntToStr(fp_config)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
+    WriteLog('CL_DEVICE_SINGLE_FP_CONFIG: ' + IntToStr(fp_config) + ';');
   {$ENDIF}
 
   FFPConfigSet := [];
   {$IFDEF CL_VERSION_1_0}
     if (fp_config and CL_FP_DENORM)<>0 then
     begin
-      FFPConfigSet := FFPConfigSet+[dfpcDenorm];
+      FFPConfigSet := FFPConfigSet + [dfpcDenorm];
       {$IFDEF LOGGING}
         WriteLog('CL_DEVICE_SINGLE_FP_CONFIG: CL_FP_DENORM;');
       {$ENDIF}
     end;
     if (fp_config and CL_FP_INF_NAN)<>0 then
     begin
-      FFPConfigSet := FFPConfigSet+[dfpcInfNan];
+      FFPConfigSet := FFPConfigSet + [dfpcInfNan];
       {$IFDEF LOGGING}
         WriteLog('CL_DEVICE_SINGLE_FP_CONFIG: CL_FP_INF_NAN;');
       {$ENDIF}
     end;
     if (fp_config and CL_FP_ROUND_TO_NEAREST)<>0 then
     begin
-      FFPConfigSet := FFPConfigSet+[dfpcRoundToNearest];
+      FFPConfigSet := FFPConfigSet + [dfpcRoundToNearest];
       {$IFDEF LOGGING}
         WriteLog('CL_DEVICE_SINGLE_FP_CONFIG: CL_FP_ROUND_TO_NEAREST;');
       {$ENDIF}
     end;
     if (fp_config and CL_FP_ROUND_TO_ZERO)<>0 then
     begin
-      FFPConfigSet := FFPConfigSet+[dfpcRoundToZero];
+      FFPConfigSet := FFPConfigSet + [dfpcRoundToZero];
       {$IFDEF LOGGING}
         WriteLog('CL_DEVICE_SINGLE_FP_CONFIG: CL_FP_ROUND_TO_ZERO;');
       {$ENDIF}
     end;
     if (fp_config and CL_FP_ROUND_TO_INF)<>0 then
     begin
-      FFPConfigSet := FFPConfigSet+[dfpcRoundToInf];
+      FFPConfigSet := FFPConfigSet + [dfpcRoundToInf];
       {$IFDEF LOGGING}
         WriteLog('CL_DEVICE_SINGLE_FP_CONFIG: CL_FP_ROUND_TO_INF;');
       {$ENDIF}
     end;
     if (fp_config and CL_FP_FMA)<>0 then
     begin
-      FFPConfigSet := FFPConfigSet+[dfpcFMA];
+      FFPConfigSet := FFPConfigSet + [dfpcFMA];
       {$IFDEF LOGGING}
         WriteLog('CL_DEVICE_SINGLE_FP_CONFIG: CL_FP_FMA;');
       {$ENDIF}
@@ -1947,7 +1947,7 @@ begin
   {$IFDEF CL_VERSION_1_1}
     if (fp_config and CL_FP_SOFT_FLOAT)<>0 then
     begin
-      FFPConfigSet := FFPConfigSet+[dfpcSoftFloat];
+      FFPConfigSet := FFPConfigSet + [dfpcSoftFloat];
       {$IFDEF LOGGING}
         WriteLog('CL_DEVICE_SINGLE_FP_CONFIG: CL_FP_SOFT_FLOAT;');
       {$ENDIF}
@@ -1956,40 +1956,40 @@ begin
   {$IFDEF CL_VERSION_1_2}
     if (fp_config and CL_FP_CORRECTLY_ROUNDED_DIVIDE_SQRT)<>0 then
     begin
-      FFPConfigSet := FFPConfigSet+[dfpcCorrectlyRoundedDivideSqrt];
+      FFPConfigSet := FFPConfigSet + [dfpcCorrectlyRoundedDivideSqrt];
       {$IFDEF LOGGING}
         WriteLog('CL_DEVICE_SINGLE_FP_CONFIG: CL_FP_CORRECTLY_ROUNDED_DIVIDE_SQRT;');
       {$ENDIF}
     end;
   {$ENDIF}
 
-  FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_EXECUTION_CAPABILITIES, SizeOf(execution_capabilities),@execution_capabilities,nil);
+  FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_EXECUTION_CAPABILITIES, SizeOf(execution_capabilities), @execution_capabilities, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
-    WriteLog('CL_DEVICE_EXECUTION_CAPABILITIES: '+IntToStr(execution_capabilities)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
+    WriteLog('CL_DEVICE_EXECUTION_CAPABILITIES: ' + IntToStr(execution_capabilities) + ';');
   {$ENDIF}
   FExecutionCapabilities := [];
   {$IFDEF CL_VERSION_1_0}
     if (execution_capabilities and CL_EXEC_KERNEL)<>0 then
     begin
-      FExecutionCapabilities := FExecutionCapabilities+[decExecKernel];
+      FExecutionCapabilities := FExecutionCapabilities + [decExecKernel];
       {$IFDEF LOGGING}
         WriteLog('CL_DEVICE_EXECUTION_CAPABILITIES: CL_EXEC_KERNEL;');
       {$ENDIF}
     end;
     if (execution_capabilities and CL_EXEC_NATIVE_KERNEL)<>0 then
     begin
-      FExecutionCapabilities := FExecutionCapabilities+[decExecNativeKernel];
+      FExecutionCapabilities := FExecutionCapabilities + [decExecNativeKernel];
       {$IFDEF LOGGING}
         WriteLog('CL_DEVICE_EXECUTION_CAPABILITIES: CL_EXEC_NATIVE_KERNEL;');
       {$ENDIF}
     end;
   {$ENDIF}
 
-  FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_GLOBAL_MEM_CACHE_TYPE, SizeOf(global_mem_cache_type),@global_mem_cache_type,nil);
+  FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_GLOBAL_MEM_CACHE_TYPE, SizeOf(global_mem_cache_type), @global_mem_cache_type, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
-    WriteLog('CL_DEVICE_GLOBAL_MEM_CACHE_TYPE: '+IntToStr(global_mem_cache_type)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
+    WriteLog('CL_DEVICE_GLOBAL_MEM_CACHE_TYPE: ' + IntToStr(global_mem_cache_type) + ';');
   {$ENDIF}
 
   {$IFDEF CL_VERSION_1_0}
@@ -2017,10 +2017,10 @@ begin
   {$ENDIF}
 
 
-  FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_LOCAL_MEM_TYPE, SizeOf(local_mem_type),@local_mem_type,nil);
+  FStatus := clGetDeviceInfo(FDevice_id, CL_DEVICE_LOCAL_MEM_TYPE, SizeOf(local_mem_type), @local_mem_type, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetDeviceInfo: '+GetString(FStatus)+';');
-    WriteLog('CL_DEVICE_LOCAL_MEM_TYPE: '+IntToStr(local_mem_type)+';');
+    WriteLog('clGetDeviceInfo: ' + GetString(FStatus) + ';');
+    WriteLog('CL_DEVICE_LOCAL_MEM_TYPE: ' + IntToStr(local_mem_type) + ';');
   {$ENDIF}
 
   {$IFDEF CL_VERSION_1_0}
@@ -2045,7 +2045,7 @@ end;
 
 function TDCLDevice.CreateBuffer(const Size: TSize_t; const Data: Pointer; const flags: TDCLMemFlagsSet): TDCLBuffer;
 begin
-  Result := TDCLBuffer.Create(Context.FContext,flags,Size,Data);
+  Result := TDCLBuffer.Create(Context.FContext, flags, Size, Data);
 end;
 
 function TDCLDevice.CreateCommandQueue(
@@ -2073,19 +2073,19 @@ end;
 function TDCLDevice.CreateProgram(const Source: PPAnsiChar;
   const Options: PAnsiChar): TDCLProgram;
 begin
-  Result := TDCLProgram.Create(FDevice_id,FContext.FContext,Source,Options);
+  Result := TDCLProgram.Create(FDevice_id, FContext.FContext, Source, Options);
 end;
 
 function TDCLDevice.CreateImage2D(const Format: PCL_image_format; const Width, Height, RowPitch: TSize_t;
   const Data: Pointer; const flags: TDCLMemFlagsSet): TDCLImage2D;
 begin
-  Result:= TDCLImage2D.Create(Context.FContext,flags,Format,Width,Height,RowPitch,Data);
+  Result :=  TDCLImage2D.Create(Context.FContext, flags, Format, Width, Height, RowPitch, Data);
 end;
 
 function TDCLDevice.CreateFromGLImage2D(const Texture: TGLuint;
   const Flags: TDCLMemFlagsSet): TDCLImage2D;
 begin
-  Result := TDCLImage2D.CreateFromGL(Context.FContext,Flags,Texture);
+  Result := TDCLImage2D.CreateFromGL(Context.FContext, Flags, Texture);
 end;
 
 function TDCLDevice.CreateProgram(const FileName: String;
@@ -2095,36 +2095,36 @@ var
   Source: AnsiString;
   buf: AnsiString;
 begin
-  AssignFile(F,FileName);
+  AssignFile(F, FileName);
   Reset(F);
   Source := '';
   while not(EOF(F))do
   begin
-    Readln(F,buf);
-    Source := Source+buf+#10+#13;
+    Readln(F, buf);
+    Source := Source + buf + #10 + #13;
   end;
   CloseFile(F);
-  Result := CreateProgram(@PAnsiString(Source),Options);
+  Result := CreateProgram(@PAnsiString(Source), Options);
 end;
 
 destructor TDCLDevice.Destroy;
 begin
   FreeAndNil(FContext);
-  SetLength(FExtensions,0);
-  FExtensionsString :='';
-  FOpenCLCVersion :='';
-  FDriverVersion :='';
-  FName :='';
-  FVendor :='';
-  FVersion :='';
-  FProfile :='';
+  SetLength(FExtensions, 0);
+  FExtensionsString  := '';
+  FOpenCLCVersion  := '';
+  FDriverVersion  := '';
+  FName  := '';
+  FVendor  := '';
+  FVersion  := '';
+  FProfile  := '';
   inherited;
 end;
 
 function TDCLDevice.GetExtensions(const Index: TSize_t): AnsiString;
 begin
   if Index<FExtensionsCount then Result := FExtensions[Index]
-  else Result:='';
+  else Result := '';
 end;
 
 function TDCLDevice.IsPresentExtension(
@@ -2135,7 +2135,7 @@ var
 begin
   Result := False;
   UppName := UpperCase(ExtensionName);
-  for i:=0 to High(FExtensions) do
+  for i := 0 to High(FExtensions) do
   begin
     if FExtensions[i]=UppName then
     begin
@@ -2154,7 +2154,7 @@ end;
 function TDCLDevice.CreateFromGLBuffer(const Data: Pointer;
   const flags: TDCLMemFlagsSet): TDCLBuffer;
 begin
-  Result := TDCLBuffer.CreateFromGL(Context.FContext,flags,Data);
+  Result := TDCLBuffer.CreateFromGL(Context.FContext, flags, Data);
 end;
 
 { TDCLContext }
@@ -2167,22 +2167,22 @@ constructor TDCLContext.Create(Device_id: PCL_device_id);
 *)
 begin
   inherited Create();
-  FContext := clCreateContext(nil,1,@Device_id,nil,nil,@FStatus);
+  FContext := clCreateContext(nil, 1, @Device_id, nil, nil, @FStatus);
   {$IFDEF LOGGING}
-    WriteLog('clCreateContext: '+GetString(FStatus)+';');
+    WriteLog('clCreateContext: ' + GetString(FStatus) + ';');
   {$ENDIF}
-  FStatus := clGetContextInfo(FContext, CL_CONTEXT_NUM_DEVICES ,SizeOf(FNumDevices),@FNumDevices,nil);
+  FStatus := clGetContextInfo(FContext, CL_CONTEXT_NUM_DEVICES , SizeOf(FNumDevices), @FNumDevices, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetContextInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetContextInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_CONTEXT_NUM_DEVICES: '+IntToStr(FNumDevices)+';');
+    WriteLog('CL_CONTEXT_NUM_DEVICES: ' + IntToStr(FNumDevices) + ';');
   {$ENDIF}
 end;
 
 constructor TDCLContext.CreateGL(Device_id: PCL_device_id);
 var
-  props: Array [0..4]of TCL_uint;
+  props: array [0..4] of TCL_uint;
 begin
   inherited Create();
   props[0] := CL_GL_CONTEXT_KHR;
@@ -2201,16 +2201,16 @@ begin
   {$ENDIF}
   props[4] := 0;
 
-  FContext := clCreateContext(@props[0],1,@Device_id,nil,nil,@FStatus);
+  FContext := clCreateContext(@props[0], 1, @Device_id, nil, nil, @FStatus);
   {$IFDEF LOGGING}
-    WriteLog('clCreateContext: '+GetString(FStatus)+';');
+    WriteLog('clCreateContext: ' + GetString(FStatus) + ';');
   {$ENDIF}
-  FStatus := clGetContextInfo(FContext, CL_CONTEXT_NUM_DEVICES ,SizeOf(FNumDevices),@FNumDevices,nil);
+  FStatus := clGetContextInfo(FContext, CL_CONTEXT_NUM_DEVICES , SizeOf(FNumDevices), @FNumDevices, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetContextInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetContextInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_CONTEXT_NUM_DEVICES: '+IntToStr(FNumDevices)+';');
+    WriteLog('CL_CONTEXT_NUM_DEVICES: ' + IntToStr(FNumDevices) + ';');
   {$ENDIF}
 end;
 
@@ -2218,7 +2218,7 @@ destructor TDCLContext.Destroy;
 begin
   FStatus := clReleaseContext(FContext);
   {$IFDEF LOGGING}
-    WriteLog('clReleaseContext: '+GetString(FStatus)+';');
+    WriteLog('clReleaseContext: ' + GetString(FStatus) + ';');
   {$ENDIF}
   inherited;
 end;
@@ -2236,11 +2236,11 @@ begin
   {$IFDEF PROFILING}
     props := props or CL_QUEUE_PROFILING_ENABLE;
   {$ENDIF}
-  FCommandQueue := clCreateCommandQueue(Context,Device_Id,props,@FStatus);
+  FCommandQueue := clCreateCommandQueue(Context, Device_Id, props, @FStatus);
   {$IFDEF LOGGING}
-    WriteLog('clCreateCommandQueue: '+GetString(FStatus)+';');
+    WriteLog('clCreateCommandQueue: ' + GetString(FStatus) + ';');
   {$ENDIF}
-  FProperties:=Properties;
+  FProperties := Properties;
 end;
 
 { TDCLBuffer }
@@ -2251,16 +2251,16 @@ var
   fgs: TCL_mem_flags;
 begin
   inherited Create();
-  fgs:=0;
-  if mfReadWrite in flags then fgs:=fgs or CL_MEM_READ_WRITE;
-  if mfWriteOnly in flags then fgs:=fgs or CL_MEM_WRITE_ONLY;
-  if mfReadOnly in flags then fgs:=fgs or CL_MEM_READ_ONLY;
-  if mfUseHostPtr in flags then fgs:=fgs or CL_MEM_USE_HOST_PTR;
-  if mfAllocHostPtr in flags then fgs:=fgs or CL_MEM_ALLOC_HOST_PTR;
-  if mfCopyHostPtr in flags then fgs:=fgs or CL_MEM_COPY_HOST_PTR;
-  FMem := clCreateBuffer(Context,fgs,Size,Data,@FStatus);
+  fgs := 0;
+  if mfReadWrite in flags then fgs := fgs or CL_MEM_READ_WRITE;
+  if mfWriteOnly in flags then fgs := fgs or CL_MEM_WRITE_ONLY;
+  if mfReadOnly in flags then fgs := fgs or CL_MEM_READ_ONLY;
+  if mfUseHostPtr in flags then fgs := fgs or CL_MEM_USE_HOST_PTR;
+  if mfAllocHostPtr in flags then fgs := fgs or CL_MEM_ALLOC_HOST_PTR;
+  if mfCopyHostPtr in flags then fgs := fgs or CL_MEM_COPY_HOST_PTR;
+  FMem := clCreateBuffer(Context, fgs, Size, Data, @FStatus);
   {$IFDEF LOGGING}
-    WriteLog('clCreateBuffer: '+GetString(FStatus)+';');
+    WriteLog('clCreateBuffer: ' + GetString(FStatus) + ';');
   {$ENDIF}
   FSize := Size;
 end;
@@ -2271,23 +2271,23 @@ var
   fgs: TCL_mem_flags;
 begin
   inherited Create();
-  fgs:=0;
-  if mfReadWrite in flags then fgs:=fgs or CL_MEM_READ_WRITE;
-  if mfWriteOnly in flags then fgs:=fgs or CL_MEM_WRITE_ONLY;
-  if mfReadOnly in flags then fgs:=fgs or CL_MEM_READ_ONLY;
-  if mfUseHostPtr in flags then fgs:=fgs or CL_MEM_USE_HOST_PTR;
-  if mfAllocHostPtr in flags then fgs:=fgs or CL_MEM_ALLOC_HOST_PTR;
-  if mfCopyHostPtr in flags then fgs:=fgs or CL_MEM_COPY_HOST_PTR;
-  FMem := clCreateFromGLBuffer(Context,fgs,PGLUint(Data)^,@FStatus);
+  fgs := 0;
+  if mfReadWrite in flags then fgs := fgs or CL_MEM_READ_WRITE;
+  if mfWriteOnly in flags then fgs := fgs or CL_MEM_WRITE_ONLY;
+  if mfReadOnly in flags then fgs := fgs or CL_MEM_READ_ONLY;
+  if mfUseHostPtr in flags then fgs := fgs or CL_MEM_USE_HOST_PTR;
+  if mfAllocHostPtr in flags then fgs := fgs or CL_MEM_ALLOC_HOST_PTR;
+  if mfCopyHostPtr in flags then fgs := fgs or CL_MEM_COPY_HOST_PTR;
+  FMem := clCreateFromGLBuffer(Context, fgs, PGLUint(Data)^, @FStatus);
   {$IFDEF LOGGING}
-    WriteLog('clCreateFromGLBuffer: '+GetString(FStatus)+';');
+    WriteLog('clCreateFromGLBuffer: ' + GetString(FStatus) + ';');
   {$ENDIF}
   FSize := Size;
 end;
 
 destructor TDCLBuffer.Destroy;
 begin
-  FStatus:=clReleaseMemObject(FMem);
+  FStatus := clReleaseMemObject(FMem);
   inherited;
 end;
 
@@ -2302,24 +2302,24 @@ var
 begin
   FStatus := clEnqueueNDRangeKernel(FCommandQueue, Kernel.FKernel, 1, nil, @Size, nil, 0, nil, {$IFDEF PROFILING}@TimingEvent{$ELSE}nil{$ENDIF});
   {$IFDEF LOGGING}
-    WriteLog('clEnqueueNDRangeKernel: '+GetString(FStatus)+';');
+    WriteLog('clEnqueueNDRangeKernel: ' + GetString(FStatus) + ';');
   {$ENDIF}
   FStatus := clFinish(FCommandQueue);
   {$IFDEF LOGGING}
-    WriteLog('clFinish: '+GetString(FStatus)+';');
+    WriteLog('clFinish: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF PROFILING}
-    FStatus := clGetEventProfilingInfo(TimingEvent,CL_PROFILING_COMMAND_START,SizeOf(StartTime),@StartTime,nil);
+    FStatus := clGetEventProfilingInfo(TimingEvent, CL_PROFILING_COMMAND_START, SizeOf(StartTime), @StartTime, nil);
     {$IFDEF LOGGING}
-      WriteLog('clGetEventProfilingInfo: '+GetString(FStatus)+';');
+      WriteLog('clGetEventProfilingInfo: ' + GetString(FStatus) + ';');
     {$ENDIF}
-    FStatus := clGetEventProfilingInfo(TimingEvent,CL_PROFILING_COMMAND_END,SizeOf(EndTime),@EndTime,nil);
+    FStatus := clGetEventProfilingInfo(TimingEvent, CL_PROFILING_COMMAND_END, SizeOf(EndTime), @EndTime, nil);
     {$IFDEF LOGGING}
-      WriteLog('clGetEventProfilingInfo: '+GetString(FStatus)+';');
+      WriteLog('clGetEventProfilingInfo: ' + GetString(FStatus) + ';');
     {$ENDIF}
     FExecuteTime := EndTime-StartTime;
     {$IFDEF LOGGING}
-      WriteLog('EnqueueNDRangeKernel time: '+IntToStr(FExecuteTime)+' ns;');
+      WriteLog('EnqueueNDRangeKernel time: ' + IntToStr(FExecuteTime) + ' ns;');
     {$ENDIF}
   {$ENDIF}
 end;
@@ -2334,28 +2334,28 @@ var
 {$ENDIF}
 begin
   {$IFDEF LOGGING}
-    WriteLog('clGetKernelWorkGroupInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetKernelWorkGroupInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   FStatus := clEnqueueNDRangeKernel(FCommandQueue, Kernel.FKernel, Length(Size), nil, @Size[0], nil, 0, nil, {$IFDEF PROFILING}@TimingEvent{$ELSE}nil{$ENDIF});
   {$IFDEF LOGGING}
-    WriteLog('clEnqueueNDRangeKernel: '+GetString(FStatus)+';');
+    WriteLog('clEnqueueNDRangeKernel: ' + GetString(FStatus) + ';');
   {$ENDIF}
   FStatus := clFinish(FCommandQueue);
   {$IFDEF LOGGING}
-    WriteLog('clFinish: '+GetString(FStatus)+';');
+    WriteLog('clFinish: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF PROFILING}
-    FStatus := clGetEventProfilingInfo(TimingEvent,CL_PROFILING_COMMAND_START,SizeOf(StartTime),@StartTime,nil);
+    FStatus := clGetEventProfilingInfo(TimingEvent, CL_PROFILING_COMMAND_START, SizeOf(StartTime), @StartTime, nil);
     {$IFDEF LOGGING}
-      WriteLog('clGetEventProfilingInfo: '+GetString(FStatus)+';');
+      WriteLog('clGetEventProfilingInfo: ' + GetString(FStatus) + ';');
     {$ENDIF}
-    FStatus := clGetEventProfilingInfo(TimingEvent,CL_PROFILING_COMMAND_END,SizeOf(EndTime),@EndTime,nil);
+    FStatus := clGetEventProfilingInfo(TimingEvent, CL_PROFILING_COMMAND_END, SizeOf(EndTime), @EndTime, nil);
     {$IFDEF LOGGING}
-      WriteLog('clGetEventProfilingInfo: '+GetString(FStatus)+';');
+      WriteLog('clGetEventProfilingInfo: ' + GetString(FStatus) + ';');
     {$ENDIF}
     FExecuteTime := EndTime-StartTime;
     {$IFDEF LOGGING}
-      WriteLog('EnqueueNDRangeKernel time: '+IntToStr(FExecuteTime)+' ns;');
+      WriteLog('EnqueueNDRangeKernel time: ' + IntToStr(FExecuteTime) + ' ns;');
     {$ENDIF}
   {$ENDIF}
 end;
@@ -2364,7 +2364,7 @@ destructor TDCLCommandQueue.Destroy;
 begin
   FStatus := clReleaseCommandQueue(FCommandQueue);
   {$IFDEF LOGGING}
-    WriteLog('clReleaseCommandQueue: '+GetString(FStatus)+';');
+    WriteLog('clReleaseCommandQueue: ' + GetString(FStatus) + ';');
   {$ENDIF}
   inherited;
 end;
@@ -2377,80 +2377,80 @@ constructor TDCLProgram.Create(const Device: PCL_device_id;
 var
   Size: TSize_t;
 begin
-  FProgram := clCreateProgramWithSource(Context,1,Source,nil,@FStatus);
+  FProgram := clCreateProgramWithSource(Context, 1, Source, nil, @FStatus);
   {$IFDEF LOGGING}
-    WriteLog('clCreateProgramWithSource: '+GetString(FStatus)+';');
+    WriteLog('clCreateProgramWithSource: ' + GetString(FStatus) + ';');
   {$ENDIF}
-  FStatus := clBuildProgram(FProgram,1,@Device,Options,nil,nil);
-  //FStatus := clBuildProgram(FProgram,0,nil,Options,nil,nil);
+  FStatus := clBuildProgram(FProgram, 1, @Device, Options, nil, nil);
+  //FStatus := clBuildProgram(FProgram, 0, nil, Options, nil, nil);
   {$IFDEF LOGGING}
-    WriteLog('clBuildProgram: '+GetString(FStatus)+';');
+    WriteLog('clBuildProgram: ' + GetString(FStatus) + ';');
   {$ENDIF}
-  FStatus := clGetProgramBuildInfo(FProgram,Device,CL_PROGRAM_BUILD_LOG,0,nil,@Size);
+  FStatus := clGetProgramBuildInfo(FProgram, Device, CL_PROGRAM_BUILD_LOG, 0, nil, @Size);
   {$IFDEF LOGGING}
-    WriteLog('clGetProgramBuildInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetProgramBuildInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
-  SetLength(FLog,Size);
-  FStatus := clGetProgramBuildInfo(FProgram,Device,CL_PROGRAM_BUILD_LOG,Size,@FLog[1],nil);
+  SetLength(FLog, Size);
+  FStatus := clGetProgramBuildInfo(FProgram, Device, CL_PROGRAM_BUILD_LOG, Size, @FLog[1], nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetProgramBuildInfo: '+GetString(FStatus)+';');
-    WriteLog('FLog: '+FLog+';');
+    WriteLog('clGetProgramBuildInfo: ' + GetString(FStatus) + ';');
+    WriteLog('FLog: ' + FLog + ';');
   {$ENDIF}
-  FStatus := clGetProgramInfo(FProgram,CL_PROGRAM_SOURCE,0,nil,@Size);
+  FStatus := clGetProgramInfo(FProgram, CL_PROGRAM_SOURCE, 0, nil, @Size);
   {$IFDEF LOGGING}
-    WriteLog('clGetProgramInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetProgramInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   FSource := GetMemory(Size);
-  FStatus := clGetProgramInfo(FProgram,CL_PROGRAM_SOURCE,Size,FSource,nil);
+  FStatus := clGetProgramInfo(FProgram, CL_PROGRAM_SOURCE, Size, FSource, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetProgramInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetProgramInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_PROGRAM_SOURCE: '+AnsiString(FSource)+';');
+    WriteLog('CL_PROGRAM_SOURCE: ' + AnsiString(FSource) + ';');
   {$ENDIF}
 
-  FStatus := clGetProgramInfo(FProgram,CL_PROGRAM_BINARY_SIZES,SizeOf(FBinarySizes),@FBinarySizes,nil);
+  FStatus := clGetProgramInfo(FProgram, CL_PROGRAM_BINARY_SIZES, SizeOf(FBinarySizes), @FBinarySizes, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetProgramInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetProgramInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_PROGRAM_BINARY_SIZES: '+IntToStr(FBinarySizes)+';');
+    WriteLog('CL_PROGRAM_BINARY_SIZES: ' + IntToStr(FBinarySizes) + ';');
   {$ENDIF}
-  SetLength(FBinaries,1,FBinarySizes);
-  FStatus := clGetProgramInfo(FProgram,CL_PROGRAM_BINARIES,SizeOf(FBinaries),@FBinaries[0],nil);
+  SetLength(FBinaries, 1, FBinarySizes);
+  FStatus := clGetProgramInfo(FProgram, CL_PROGRAM_BINARIES, SizeOf(FBinaries), @FBinaries[0], nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetProgramInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetProgramInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_PROGRAM_BINARIES: '+AnsiString(FBinaries[0])+';');
+    WriteLog('CL_PROGRAM_BINARIES: ' + AnsiString(FBinaries[0]) + ';');
   {$ENDIF}
 end;
 
 function TDCLProgram.CreateKernel(const KernelName: PAnsiChar): TDCLKernel;
 begin
-  Result := TDCLKernel.Create(FProgram,KernelName);
+  Result := TDCLKernel.Create(FProgram, KernelName);
 end;
 
 destructor TDCLProgram.Destroy;
 begin
   FStatus := clReleaseProgram(FProgram);
   {$IFDEF LOGGING}
-    WriteLog('clReleaseProgram: '+GetString(FStatus)+';');
+    WriteLog('clReleaseProgram: ' + GetString(FStatus) + ';');
   {$ENDIF}
   FSource := '';
   FBinarySizes := 0;
-  SetLength(FBinaries,0,0);
+  SetLength(FBinaries, 0, 0);
   inherited;
 end;
 
 procedure TDCLProgram.SaveToFile(const FileName: AnsiString);
 var
-  F: File;
+  F: file;
 begin
   try
-    AssignFile(F,FileName);
-    Rewrite(F,1);
-    BlockWrite(F,FBinaries[0],FBinarySizes);
+    AssignFile(F, FileName);
+    Rewrite(F, 1);
+    BlockWrite(F, FBinaries[0], FBinarySizes);
   finally
     CloseFile(F);
   end;
@@ -2461,9 +2461,9 @@ end;
 constructor TDCLKernel.Create(const Program_: PCL_program;
   const KernelName: PAnsiChar);
 begin
-  FKernel := clCreateKernel(Program_,KernelName,@FStatus);
+  FKernel := clCreateKernel(Program_, KernelName, @FStatus);
   {$IFDEF LOGGING}
-    WriteLog('clCreateKernel: '+GetString(FStatus)+';');
+    WriteLog('clCreateKernel: ' + GetString(FStatus) + ';');
   {$ENDIF}
 end;
 
@@ -2471,7 +2471,7 @@ destructor TDCLKernel.Destroy;
 begin
   FStatus := clReleaseKernel(FKernel);
   {$IFDEF LOGGING}
-    WriteLog('clReleaseKernel: '+GetString(FStatus)+';');
+    WriteLog('clReleaseKernel: ' + GetString(FStatus) + ';');
   {$ENDIF}
   inherited;
 end;
@@ -2479,54 +2479,54 @@ end;
 function TDCLKernel.GetFunctionName: AnsiString;
 var
   Size: TSize_t;
-  buffer: Array of AnsiChar;
+  buffer: array of AnsiChar;
 begin
-  FStatus := clGetKernelInfo(FKernel,CL_KERNEL_FUNCTION_NAME,0,nil,@Size);
+  FStatus := clGetKernelInfo(FKernel, CL_KERNEL_FUNCTION_NAME, 0, nil, @Size);
   {$IFDEF LOGGING}
-    WriteLog('clGetKernelInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetKernelInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
-  SetLength(buffer,Size);
-  FStatus := clGetKernelInfo(FKernel,CL_KERNEL_FUNCTION_NAME,Size,@buffer[0],nil);
+  SetLength(buffer, Size);
+  FStatus := clGetKernelInfo(FKernel, CL_KERNEL_FUNCTION_NAME, Size, @buffer[0], nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetKernelInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetKernelInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_KERNEL_FUNCTION_NAME: '+AnsiString(buffer)+';');
+    WriteLog('CL_KERNEL_FUNCTION_NAME: ' + AnsiString(buffer) + ';');
   {$ENDIF}
   Result := AnsiString(buffer);
-  SetLength(buffer,0);
+  SetLength(buffer, 0);
 end;
 
 function TDCLKernel.GetNumArgs: TCL_uint;
 begin
-  FStatus := clGetKernelInfo(FKernel,CL_KERNEL_NUM_ARGS,SizeOf(Result),@Result,nil);
+  FStatus := clGetKernelInfo(FKernel, CL_KERNEL_NUM_ARGS, SizeOf(Result), @Result, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetKernelInfo: '+GetString(FStatus)+';');
+    WriteLog('clGetKernelInfo: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF LOGGING}
-    WriteLog('CL_KERNEL_NUM_ARGS: '+IntToStr(Result)+';');
+    WriteLog('CL_KERNEL_NUM_ARGS: ' + IntToStr(Result) + ';');
   {$ENDIF}
 end;
 
 procedure TDCLKernel.SetArg(const Index: TCL_uint; const Size: TSize_t;
   const Value: Pointer);
 begin
-  FStatus := clSetKernelArg(FKernel,Index,Size,Value);
+  FStatus := clSetKernelArg(FKernel, Index, Size, Value);
   {$IFDEF LOGGING}
-    WriteLog('clSetKernelArg: '+GetString(FStatus)+';');
+    WriteLog('clSetKernelArg: ' + GetString(FStatus) + ';');
   {$ENDIF}
 end;
 
 procedure TDCLKernel.SetArg(const Index: TCL_uint;
   const Value: TDCLBuffer);
 begin
-  SetArg(Index,SizeOf(@Value.FMem),@Value.FMem);
+  SetArg(Index, SizeOf(@Value.FMem), @Value.FMem);
 end;
 
 procedure TDCLKernel.SetArg(const Index: TCL_uint;
   const Value: TDCLImage2D);
 begin
-  SetArg(Index,SizeOf(@Value.FMem),@Value.FMem);
+  SetArg(Index, SizeOf(@Value.FMem), @Value.FMem);
 end;
 
 procedure TDCLCommandQueue.ReadBuffer(const Buffer: TDCLBuffer;
@@ -2538,63 +2538,63 @@ var
   EndTime: TCL_ulong;
 {$ENDIF}
 begin
-  FStatus := clEnqueueReadBuffer(FCommandQueue,Buffer.FMem,CL_TRUE,0,Size,Data,0,nil,{$IFDEF PROFILING}@TimingEvent{$ELSE}nil{$ENDIF});
+  FStatus := clEnqueueReadBuffer(FCommandQueue, Buffer.FMem, CL_TRUE, 0, Size, Data, 0, nil, {$IFDEF PROFILING}@TimingEvent{$ELSE}nil{$ENDIF});
   {$IFDEF LOGGING}
-    WriteLog('clEnqueueReadBuffer: '+GetString(FStatus)+';');
+    WriteLog('clEnqueueReadBuffer: ' + GetString(FStatus) + ';');
   {$ENDIF}
   clFinish(FCommandQueue);
   {$IFDEF LOGGING}
-    WriteLog('clFinish: '+GetString(FStatus)+';');
+    WriteLog('clFinish: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF PROFILING}
-    FStatus := clGetEventProfilingInfo(TimingEvent,CL_PROFILING_COMMAND_START,SizeOf(StartTime),@StartTime,nil);
+    FStatus := clGetEventProfilingInfo(TimingEvent, CL_PROFILING_COMMAND_START, SizeOf(StartTime), @StartTime, nil);
     {$IFDEF LOGGING}
-      WriteLog('clGetEventProfilingInfo: '+GetString(FStatus)+';');
+      WriteLog('clGetEventProfilingInfo: ' + GetString(FStatus) + ';');
     {$ENDIF}
-    FStatus := clGetEventProfilingInfo(TimingEvent,CL_PROFILING_COMMAND_END,SizeOf(EndTime),@EndTime,nil);
+    FStatus := clGetEventProfilingInfo(TimingEvent, CL_PROFILING_COMMAND_END, SizeOf(EndTime), @EndTime, nil);
     {$IFDEF LOGGING}
-      WriteLog('clGetEventProfilingInfo: '+GetString(FStatus)+';');
+      WriteLog('clGetEventProfilingInfo: ' + GetString(FStatus) + ';');
     {$ENDIF}
     FExecuteTime := EndTime-StartTime;
     {$IFDEF LOGGING}
-      WriteLog('EnqueueReadBuffer time : '+IntToStr(FExecuteTime)+' ns;');
+      WriteLog('EnqueueReadBuffer time : ' + IntToStr(FExecuteTime) + ' ns;');
     {$ENDIF}
   {$ENDIF}
 end;
 
 procedure TDCLCommandQueue.ReadImage2D(const Image: TDCLImage2D; const Data: Pointer);
 var
-  origin,region: Array [0..2]of TSize_t;
+  origin, region: array [0..2] of TSize_t;
 {$IFDEF PROFILING}
   TimingEvent: PCL_event;
   StartTime,
   EndTime: TCL_ulong;
 {$ENDIF}
 begin
-  ZeroMemory(@origin,SizeOf(origin));
+  ZeroMemory(@origin, SizeOf(origin));
   region[0] := Image.Width;
   region[1] := Image.Height;
   region[2] := 1;// Image 2D
-  FStatus := clEnqueueReadImage(FCommandQueue,Image.FMem,CL_TRUE,@origin,@region,0,0,Data,0,nil,{$IFDEF PROFILING}@TimingEvent{$ELSE}nil{$ENDIF});
+  FStatus := clEnqueueReadImage(FCommandQueue, Image.FMem, CL_TRUE, @origin, @region, 0, 0, Data, 0, nil, {$IFDEF PROFILING}@TimingEvent{$ELSE}nil{$ENDIF});
   {$IFDEF LOGGING}
-    WriteLog('clEnqueueReadImage: '+GetString(FStatus)+';');
+    WriteLog('clEnqueueReadImage: ' + GetString(FStatus) + ';');
   {$ENDIF}
   FStatus := clFinish(FCommandQueue);
   {$IFDEF LOGGING}
-    WriteLog('clFinish: '+GetString(FStatus)+';');
+    WriteLog('clFinish: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF PROFILING}
-    FStatus := clGetEventProfilingInfo(TimingEvent,CL_PROFILING_COMMAND_START,SizeOf(StartTime),@StartTime,nil);
+    FStatus := clGetEventProfilingInfo(TimingEvent, CL_PROFILING_COMMAND_START, SizeOf(StartTime), @StartTime, nil);
     {$IFDEF LOGGING}
-      WriteLog('clGetEventProfilingInfo: '+GetString(FStatus)+';');
+      WriteLog('clGetEventProfilingInfo: ' + GetString(FStatus) + ';');
     {$ENDIF}
-    FStatus := clGetEventProfilingInfo(TimingEvent,CL_PROFILING_COMMAND_END,SizeOf(EndTime),@EndTime,nil);
+    FStatus := clGetEventProfilingInfo(TimingEvent, CL_PROFILING_COMMAND_END, SizeOf(EndTime), @EndTime, nil);
     {$IFDEF LOGGING}
-      WriteLog('clGetEventProfilingInfo: '+GetString(FStatus)+';');
+      WriteLog('clGetEventProfilingInfo: ' + GetString(FStatus) + ';');
     {$ENDIF}
     FExecuteTime := EndTime-StartTime;
     {$IFDEF LOGGING}
-      WriteLog('clEnqueueReadImage time : '+IntToStr(FExecuteTime)+' ns;');
+      WriteLog('clEnqueueReadImage time : ' + IntToStr(FExecuteTime) + ' ns;');
     {$ENDIF}
   {$ENDIF}
 
@@ -2603,37 +2603,37 @@ end;
 procedure TDCLCommandQueue.WriteImage2D(const Image: TDCLImage2D;
   const Width, Height: TSize_t; const Data: Pointer);
 var
-  origin,region: Array [0..2]of TSize_t;
+  origin, region: array [0..2] of TSize_t;
 {$IFDEF PROFILING}
   TimingEvent: PCL_event;
   StartTime,
   EndTime: TCL_ulong;
 {$ENDIF}
 begin
-  ZeroMemory(@origin,SizeOf(origin));
+  ZeroMemory(@origin, SizeOf(origin));
   region[0] := Width;
   region[1] := Height;
   region[2] := 1;// Image 2D
-  FStatus := clEnqueueWriteImage(FCommandQueue,Image.FMem,CL_TRUE,@origin,@region,0,0,Data,0,nil,{$IFDEF PROFILING}@TimingEvent{$ELSE}nil{$ENDIF});
+  FStatus := clEnqueueWriteImage(FCommandQueue, Image.FMem, CL_TRUE, @origin, @region, 0, 0, Data, 0, nil, {$IFDEF PROFILING}@TimingEvent{$ELSE}nil{$ENDIF});
   {$IFDEF LOGGING}
-    WriteLog('clEnqueueWriteImage: '+GetString(FStatus)+';');
+    WriteLog('clEnqueueWriteImage: ' + GetString(FStatus) + ';');
   {$ENDIF}
   FStatus := clFinish(FCommandQueue);
   {$IFDEF LOGGING}
-    WriteLog('clFinish: '+GetString(FStatus)+';');
+    WriteLog('clFinish: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF PROFILING}
-    FStatus := clGetEventProfilingInfo(TimingEvent,CL_PROFILING_COMMAND_START,SizeOf(StartTime),@StartTime,nil);
+    FStatus := clGetEventProfilingInfo(TimingEvent, CL_PROFILING_COMMAND_START, SizeOf(StartTime), @StartTime, nil);
     {$IFDEF LOGGING}
-      WriteLog('clGetEventProfilingInfo: '+GetString(FStatus)+';');
+      WriteLog('clGetEventProfilingInfo: ' + GetString(FStatus) + ';');
     {$ENDIF}
-    FStatus := clGetEventProfilingInfo(TimingEvent,CL_PROFILING_COMMAND_END,SizeOf(EndTime),@EndTime,nil);
+    FStatus := clGetEventProfilingInfo(TimingEvent, CL_PROFILING_COMMAND_END, SizeOf(EndTime), @EndTime, nil);
     {$IFDEF LOGGING}
-      WriteLog('clGetEventProfilingInfo: '+GetString(FStatus)+';');
+      WriteLog('clGetEventProfilingInfo: ' + GetString(FStatus) + ';');
     {$ENDIF}
     FExecuteTime := EndTime-StartTime;
     {$IFDEF LOGGING}
-      WriteLog('clEnqueueWriteImage time : '+IntToStr(FExecuteTime)+' ns;');
+      WriteLog('clEnqueueWriteImage time : ' + IntToStr(FExecuteTime) + ' ns;');
     {$ENDIF}
   {$ENDIF}
 end;
@@ -2647,59 +2647,59 @@ var
   EndTime: TCL_ulong;
 {$ENDIF}
 begin
-  FStatus := clEnqueueWriteBuffer(FCommandQueue,Buffer.FMem,CL_TRUE,0,Size,Data,0,nil,{$IFDEF PROFILING}@TimingEvent{$ELSE}nil{$ENDIF});
+  FStatus := clEnqueueWriteBuffer(FCommandQueue, Buffer.FMem, CL_TRUE, 0, Size, Data, 0, nil, {$IFDEF PROFILING}@TimingEvent{$ELSE}nil{$ENDIF});
   {$IFDEF LOGGING}
-    WriteLog('clEnqueueWriteBuffer: '+GetString(FStatus)+';');
+    WriteLog('clEnqueueWriteBuffer: ' + GetString(FStatus) + ';');
   {$ENDIF}
   FStatus := clFinish(FCommandQueue);
   {$IFDEF LOGGING}
-    WriteLog('clFinish: '+GetString(FStatus)+';');
+    WriteLog('clFinish: ' + GetString(FStatus) + ';');
   {$ENDIF}
   {$IFDEF PROFILING}
-    FStatus := clGetEventProfilingInfo(TimingEvent,CL_PROFILING_COMMAND_START,SizeOf(StartTime),@StartTime,nil);
+    FStatus := clGetEventProfilingInfo(TimingEvent, CL_PROFILING_COMMAND_START, SizeOf(StartTime), @StartTime, nil);
     {$IFDEF LOGGING}
-      WriteLog('clGetEventProfilingInfo: '+GetString(FStatus)+';');
+      WriteLog('clGetEventProfilingInfo: ' + GetString(FStatus) + ';');
     {$ENDIF}
-    FStatus := clGetEventProfilingInfo(TimingEvent,CL_PROFILING_COMMAND_END,SizeOf(EndTime),@EndTime,nil);
+    FStatus := clGetEventProfilingInfo(TimingEvent, CL_PROFILING_COMMAND_END, SizeOf(EndTime), @EndTime, nil);
     {$IFDEF LOGGING}
-      WriteLog('clGetEventProfilingInfo: '+GetString(FStatus)+';');
+      WriteLog('clGetEventProfilingInfo: ' + GetString(FStatus) + ';');
     {$ENDIF}
-    FExecuteTime := EndTime-StartTime;
+    FExecuteTime := EndTime - StartTime;
     {$IFDEF LOGGING}
-      WriteLog('clEnqueueWriteBuffer time : '+IntToStr(FExecuteTime)+' ns;');
+      WriteLog('clEnqueueWriteBuffer time : ' + IntToStr(FExecuteTime) + ' ns;');
     {$ENDIF}
   {$ENDIF}
 end;
 
 procedure TDCLCommandQueue.AcquireGLObject(const Buffer: TDCLBuffer);
 begin
-  FStatus := clEnqueueAcquireGLObjects(FCommandQueue, 1, @Buffer.FMem, 0,nil,nil);
+  FStatus := clEnqueueAcquireGLObjects(FCommandQueue, 1, @Buffer.FMem, 0, nil, nil);
   {$IFDEF LOGGING}
-    WriteLog('clEnqueueAcquireGLObjects: '+GetString(FStatus)+';');
+    WriteLog('clEnqueueAcquireGLObjects: ' + GetString(FStatus) + ';');
   {$ENDIF}
 end;
 
 procedure TDCLCommandQueue.AcquireGLObject(const Image2D: TDCLImage2D);
 begin
-  FStatus := clEnqueueAcquireGLObjects(FCommandQueue, 1, @Image2D.FMem, 0,nil,nil);
+  FStatus := clEnqueueAcquireGLObjects(FCommandQueue, 1, @Image2D.FMem, 0, nil, nil);
   {$IFDEF LOGGING}
-    WriteLog('clEnqueueAcquireGLObjects: '+GetString(FStatus)+';');
+    WriteLog('clEnqueueAcquireGLObjects: ' + GetString(FStatus) + ';');
   {$ENDIF}
 end;
 
 procedure TDCLCommandQueue.ReleaseGLObject(const Buffer: TDCLBuffer);
 begin
-  FStatus := clEnqueueReleaseGLObjects(FCommandQueue, 1, @Buffer.FMem, 0,nil,nil);
+  FStatus := clEnqueueReleaseGLObjects(FCommandQueue, 1, @Buffer.FMem, 0, nil, nil);
   {$IFDEF LOGGING}
-    WriteLog('clEnqueueReleaseGLObjects: '+GetString(FStatus)+';');
+    WriteLog('clEnqueueReleaseGLObjects: ' + GetString(FStatus) + ';');
   {$ENDIF}
 end;
 
 procedure TDCLCommandQueue.ReleaseGLObject(const Image2D: TDCLImage2D);
 begin
-  FStatus := clEnqueueReleaseGLObjects(FCommandQueue, 1, @Image2D.FMem, 0,nil,nil);
+  FStatus := clEnqueueReleaseGLObjects(FCommandQueue, 1, @Image2D.FMem, 0, nil, nil);
   {$IFDEF LOGGING}
-    WriteLog('clEnqueueReleaseGLObjects: '+GetString(FStatus)+';');
+    WriteLog('clEnqueueReleaseGLObjects: ' + GetString(FStatus) + ';');
   {$ENDIF}
 end;
 
@@ -2709,22 +2709,22 @@ constructor TDCLImage2D.Create(const Context: PCL_context;
   const Flags: TDCLMemFlagsSet; const Format: PCL_image_format; const Width,
   Height, RowPitch: TSize_t; const Data: Pointer);
 var
-  fgs: TCL_mem_flags;
+  Fgs: TCL_mem_flags;
 begin
   inherited Create();
-  fgs:=0;
-  if mfReadWrite in flags then fgs:=fgs or CL_MEM_READ_WRITE;
-  if mfWriteOnly in flags then fgs:=fgs or CL_MEM_WRITE_ONLY;
-  if mfReadOnly in flags then fgs:=fgs or CL_MEM_READ_ONLY;
-  if mfUseHostPtr in flags then fgs:=fgs or CL_MEM_USE_HOST_PTR;
-  if mfAllocHostPtr in flags then fgs:=fgs or CL_MEM_ALLOC_HOST_PTR;
-  if mfCopyHostPtr in flags then fgs:=fgs or CL_MEM_COPY_HOST_PTR;
-  FFormat:= Format^;
+  Fgs := 0;
+  if mfReadWrite in Flags then Fgs := Fgs or CL_MEM_READ_WRITE;
+  if mfWriteOnly in Flags then Fgs := Fgs or CL_MEM_WRITE_ONLY;
+  if mfReadOnly in Flags then Fgs := Fgs or CL_MEM_READ_ONLY;
+  if mfUseHostPtr in Flags then Fgs := Fgs or CL_MEM_USE_HOST_PTR;
+  if mfAllocHostPtr in Flags then Fgs := Fgs or CL_MEM_ALLOC_HOST_PTR;
+  if mfCopyHostPtr in Flags then Fgs := Fgs or CL_MEM_COPY_HOST_PTR;
+  FFormat :=  Format^;
   FWidth := Width;
-  FHeight:= Height;
-  FMem := clCreateImage2D(Context, fgs, @FFormat, Width, Height, RowPitch, Data, @FStatus);
+  FHeight :=  Height;
+  FMem := clCreateImage2D(Context, Fgs, @FFormat, Width, Height, RowPitch, Data, @FStatus);
   {$IFDEF LOGGING}
-    WriteLog('clCreateImage2D: '+GetString(FStatus)+';');
+    WriteLog('clCreateImage2D: ' + GetString(FStatus) + ';');
   {$ENDIF}
 end;
 
@@ -2734,36 +2734,36 @@ var
   fgs: TCL_mem_flags;
 begin
   inherited Create();
-  fgs:=0;
-  if mfReadWrite in flags then fgs:=fgs or CL_MEM_READ_WRITE;
-  if mfWriteOnly in flags then fgs:=fgs or CL_MEM_WRITE_ONLY;
-  if mfReadOnly in flags then fgs:=fgs or CL_MEM_READ_ONLY;
-  if mfUseHostPtr in flags then fgs:=fgs or CL_MEM_USE_HOST_PTR;
-  if mfAllocHostPtr in flags then fgs:=fgs or CL_MEM_ALLOC_HOST_PTR;
-  if mfCopyHostPtr in flags then fgs:=fgs or CL_MEM_COPY_HOST_PTR;
+  fgs := 0;
+  if mfReadWrite in flags then fgs := fgs or CL_MEM_READ_WRITE;
+  if mfWriteOnly in flags then fgs := fgs or CL_MEM_WRITE_ONLY;
+  if mfReadOnly in flags then fgs := fgs or CL_MEM_READ_ONLY;
+  if mfUseHostPtr in flags then fgs := fgs or CL_MEM_USE_HOST_PTR;
+  if mfAllocHostPtr in flags then fgs := fgs or CL_MEM_ALLOC_HOST_PTR;
+  if mfCopyHostPtr in flags then fgs := fgs or CL_MEM_COPY_HOST_PTR;
 
   FMem := clCreateFromGLTexture2D(Context, fgs, GL_TEXTURE_2D, 0, Texture, @FStatus);
   {$IFDEF LOGGING}
-    WriteLog('clCreateFromGLTexture2D: '+GetString(FStatus)+';');
+    WriteLog('clCreateFromGLTexture2D: ' + GetString(FStatus) + ';');
   {$ENDIF}
 
-  FStatus := clGetImageInfo(FMem,CL_IMAGE_WIDTH,SizeOf(FWidth),@FWidth,nil);
+  FStatus := clGetImageInfo(FMem, CL_IMAGE_WIDTH, SizeOf(FWidth), @FWidth, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetImageInfo: '+GetString(FStatus)+';');
-    WriteLog('CL_IMAGE_WIDTH: '+IntToStr(FWidth)+';');
+    WriteLog('clGetImageInfo: ' + GetString(FStatus) + ';');
+    WriteLog('CL_IMAGE_WIDTH: ' + IntToStr(FWidth) + ';');
   {$ENDIF}
 
-  FStatus := clGetImageInfo(FMem,CL_IMAGE_HEIGHT,SizeOf(FHeight),@FHeight,nil);
+  FStatus := clGetImageInfo(FMem, CL_IMAGE_HEIGHT, SizeOf(FHeight), @FHeight, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetImageInfo: '+GetString(FStatus)+';');
-    WriteLog('CL_IMAGE_HEIGHT: '+IntToStr(FHeight)+';');
+    WriteLog('clGetImageInfo: ' + GetString(FStatus) + ';');
+    WriteLog('CL_IMAGE_HEIGHT: ' + IntToStr(FHeight) + ';');
   {$ENDIF}
 
-  FStatus := clGetImageInfo(FMem,CL_IMAGE_FORMAT,SizeOf(FFormat),@FFormat,nil);
+  FStatus := clGetImageInfo(FMem, CL_IMAGE_FORMAT, SizeOf(FFormat), @FFormat, nil);
   {$IFDEF LOGGING}
-    WriteLog('clGetImageInfo: '+GetString(FStatus)+';');
-    WriteLog('CL_IMAGE_FORMAT_channel_order: '+IntToStr(FFormat.Image_channel_order)+';');
-    WriteLog('CL_IMAGE_FORMAT_Image_channel_data_type: '+IntToStr(FFormat.Image_channel_data_type)+';');
+    WriteLog('clGetImageInfo: ' + GetString(FStatus) + ';');
+    WriteLog('CL_IMAGE_FORMAT_channel_order: ' + IntToStr(FFormat.Image_channel_order) + ';');
+    WriteLog('CL_IMAGE_FORMAT_Image_channel_data_type: ' + IntToStr(FFormat.Image_channel_data_type) + ';');
   {$ENDIF}
 
 end;
@@ -2772,7 +2772,7 @@ destructor TDCLImage2D.Destroy;
 begin
   FStatus := clReleaseMemObject(FMem);
   {$IFDEF LOGGING}
-    WriteLog('clReleaseMemObject: '+GetString(FStatus)+';');
+    WriteLog('clReleaseMemObject: ' + GetString(FStatus) + ';');
   {$ENDIF}
   inherited;
 end;
@@ -2780,7 +2780,7 @@ end;
 {$IFDEF LOGGING}
 
 initialization
-  AssignFile(DCLFileLOG,ExtractFilePath(ParamStr(0))+'DELPHI_LOG.log');
+  AssignFile(DCLFileLOG, ExtractFilePath(ParamStr(0)) + 'DELPHI_LOG.log');
   Rewrite(DCLFileLOG);
 finalization
   CloseFile(DCLFileLOG);

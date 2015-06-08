@@ -1,7 +1,12 @@
 PasOpenCL
 =========
 
-PasOpenCL is a fork of 'delphi-opencl' hosted on Google Code. The code of the fork is kept more or less unchanged, but the structure of the repository has changed a bit. For this reason a different name has been picked.
+PasOpenCL is a fork of 'delphi-opencl' hosted on Google Code (http://code.google.com/p/delphi-opencl/). The code of the fork is kept more or less unchanged, but the structure of the repository has changed a bit. For this reason a different name has been picked.
+
+One prominent change is the absense of the dglOpenGL.pas header, which can be found at the personal fork at:
+https://github.com/CWBudde/dglOpenGL
+or at the original location at
+https://bitbucket.org/saschawillems/dglopengl
 
 Below you can read the information given to the original project.
 

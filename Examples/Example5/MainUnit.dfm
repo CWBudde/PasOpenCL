@@ -1,4 +1,4 @@
-object fMain: TfMain
+object FormMain: TFormMain
   Left = 378
   Top = 138
   BorderStyle = bsDialog
@@ -19,10 +19,10 @@ object fMain: TfMain
   OnMouseUp = FormMouseUp
   PixelsPerInch = 96
   TextHeight = 13
-  object tRecalculate: TTimer
+  object TimerRecalculate: TTimer
     Enabled = False
     Interval = 100
-    OnTimer = tRecalculateTimer
+    OnTimer = TimerRecalculateTimer
     Left = 96
     Top = 80
   end

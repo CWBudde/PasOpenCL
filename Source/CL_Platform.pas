@@ -28,7 +28,7 @@
 (*                           (niello)       *)
 (*                                          *)
 (*      headers versions: 0.07              *)
-(*      file name       : cl_platform.pas   *)
+(*      file name       : CL_Platform.pas   *)
 (*      last modify     : 10.12.11          *)
 (*      license         : BSD               *)
 (*                                          *)
