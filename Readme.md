@@ -63,6 +63,6 @@ The TDCLPlatforms allow get access to the all platforms on the computer (AMD, NV
  
 
 
-The TDCLPlatforms have property Platforms (Array of PDCLPlatform - Pointer to the TDCLPlatform). 
+The TDCLPlatforms have property Platforms (array of PDCLPlatform - Pointer to the TDCLPlatform). 
  More in the source files. 
  Maybe later we'll write a more detailed guide.
