@@ -4,8 +4,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, dglOpenGL, ExtCtrls, ImgList, StdCtrls, ComCtrls, JPEG, CL,
-  CL_Platform, CLExt, CL_D3D9, {CL_D3D10,} CL_GL, CL_Ext, oclUtils;
+  Dialogs, dglOpenGL, ExtCtrls, ImgList, ImageList, StdCtrls, ComCtrls, JPEG,
+  CL, CL_Platform, CLExt, CL_D3D9, CL_GL, CL_Ext, oclUtils;
 
 type
   TFormOpenCLInfo = class(TForm)
@@ -37,8 +37,8 @@ type
     procedure ComboBoxDeviceChange(Sender: TObject);
     procedure ButtonCloseClick(Sender: TObject);
   public
-    FCurrentDevice: PPCL_device_id;
-    FCurrentInDevice: Integer;
+    FCurrentDevice: PCL_device_id;
+    FCurrentInDevice: PCL_device_id;
     FContext: PCL_context;
     FStatus: TCL_int;
     FDevNum: TCL_int;
@@ -88,9 +88,10 @@ var
        OldStep := i;
      end;
   end;
+
 begin
   FCurrentDevice := oclGetDev(FContext, ComboBoxDevice.ItemIndex);
-  FCurrentInDevice := Integer(FCurrentDevice^);
+  FCurrentInDevice := FCurrentDevice;
 
   //first page - platform
   TreeView.Items.Clear;
@@ -277,7 +278,6 @@ var
   FDC: HDC;
   pfd: TPixelFormatDescriptor;
   FOCL: AnsiString;
-
   i: Integer;
 begin
   l := MAX_PATH;
@@ -287,15 +287,16 @@ begin
 {$REGION 'GetVendor'}
 {$ENDIF}
   FillChar(pfd, SizeOf(pfd), 0);
-  with pfd do begin
+  with pfd do
+  begin
     nSize := SizeOf(pfd);
     nVersion := 1;
     dwFlags := PFD_DRAW_TO_WINDOW or PFD_SUPPORT_OPENGL or PFD_DOUBLEBUFFER;
-    iPixelType   := PFD_TYPE_RGBA;
+    iPixelType := PFD_TYPE_RGBA;
     cColorBits := 32;
     cDepthBits := 24;
     cStencilBits := 8;
-    iLayerType   := PFD_MAIN_PLANE;
+    iLayerType := PFD_MAIN_PLANE;
   end;
 
   InitOpenGL;
@@ -347,14 +348,14 @@ begin
   end;
 
   CPS[1] := pcl_context_properties(FPlatform);
-  FContext := clCreateContextFromType(@CPS, CL_DEVICE_TYPE_ALL,nil,nil,@Fstatus);
+  FContext := clCreateContextFromType(@CPS, CL_DEVICE_TYPE_ALL, nil, nil, @Fstatus);
   if FStatus <> CL_SUCCESS then begin
     MessageBoxA(Handle, PAnsiChar(GetString(FStatus)), 'Error', MB_OK or MB_ICONERROR);
     Close;
     Exit;
   end;
 
-  FStatus := clGetContextInfo(FContext,CL_CONTEXT_DEVICES,0,nil,@FDevNum);
+  FStatus := clGetContextInfo(FContext, CL_CONTEXT_DEVICES, 0, nil, @FDevNum);
   if FStatus <> CL_SUCCESS then begin
     MessageBoxA(0, PAnsiChar(GetString(FStatus)), 'Error', MB_OK or MB_ICONERROR);
     Close;
@@ -371,7 +372,7 @@ begin
   for i := 0 to Round(FDevNum / 4) - 1 do
   begin
     FCurrentDevice := oclGetDev(FContext, i);
-    FCurrentInDevice := Integer(FCurrentDevice^);
+    FCurrentInDevice := FCurrentDevice;
     FStatus := clGetDeviceInfo(PCL_device_id(FCurrentInDevice), CL_DEVICE_NAME, SizeOf(FBuf), @FBuf, nil);
     if FStatus <> CL_SUCCESS then
     begin

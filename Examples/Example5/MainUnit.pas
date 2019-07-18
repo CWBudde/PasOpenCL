@@ -26,7 +26,7 @@ unit MainUnit;
 
 interface
 
-{$DEFINE GL_INTEROP}
+{-$DEFINE GL_INTEROP}
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, ExtCtrls,
@@ -192,9 +192,9 @@ begin
   Size := mesh_width * mesh_height * 4 * SizeOf(TCL_float);
   glBufferData(GL_ARRAY_BUFFER, Size, nil, GL_DYNAMIC_DRAW);
 {$IFDEF GL_INTEROP}
-  vbo_cl := FDevice.CreateFromGLBuffer(vbo,[mfWriteOnly]);
+  vbo_cl := FDevice.CreateFromGLBuffer(vbo, [mfWriteOnly]);
 {$ELSE}
-  vbo_cl := FDevice.CreateBuffer(Size,nil,[mfWriteOnly]);
+  vbo_cl := FDevice.CreateBuffer(Size, nil, [mfWriteOnly]);
 {$ENDIF}
 end;
 
