@@ -1,16 +1,16 @@
 (*
  * Copyright 1993-2009 NVIDIA Corporation.  All rights reserved.
  *
- * NVIDIA Corporation and its licensors retain all intellectual property and 
- * proprietary rights in and to this software and related documentation. 
- * Any use, reproduction, disclosure, or distribution of this software 
+ * NVIDIA Corporation and its licensors retain all intellectual property and
+ * proprietary rights in and to this software and related documentation.
+ * Any use, reproduction, disclosure, or distribution of this software
  * and related documentation without an express license agreement from
  * NVIDIA Corporation is strictly prohibited.
  *
- * Please refer to the applicable NVIDIA end user license agreement (EULA) 
- * associated with this source code for terms and conditions that govern 
+ * Please refer to the applicable NVIDIA end user license agreement (EULA)
+ * associated with this source code for terms and conditions that govern
  * your use of this NVIDIA software.
- * 
+ *
  *)
 
 (********************************************)
@@ -36,7 +36,7 @@ unit oclUtils;
 interface
 
 uses
-  CL,CL_platform,clExt;
+  CL, CL_platform, clExt;
 
 {$INCLUDE OpenCL.inc}
 
@@ -144,68 +144,68 @@ function pos2(substr: AnsiString; S: AnsiString; const startpos: Integer): Integ
 var
  copyStr: AnsiString;
 begin
-  copyStr:=copy(S,startpos,Length(S)-startpos);
-  Result:=pos(Substr,copystr)+startpos-1;
+  copyStr := Copy(S, startpos, Length(S) - startpos);
+  Result := Pos(Substr, copystr) + startpos - 1;
 end;
 
 function oclGetPlatformID(clSelectedPlatformID: PPCL_platform_id): TCL_int;
 var
-  chBuffer: array [0..1023]of AnsiChar;
+  chBuffer: array [0..1023] of AnsiChar;
   num_platforms: TCL_uint;
   clPlatformIDs: array of PCL_platform_id;
   ciErrNum: TCL_int;
   i: integer;
 begin
   //Get OpenCL platform count
-  ciErrNum := clGetPlatformIDs(0,nil,@num_platforms);
-  if ciErrNum<>CL_SUCCESS then
+  ciErrNum := clGetPlatformIDs(0, nil, @num_platforms);
+  if ciErrNum <> CL_SUCCESS then
   begin
     {$IFDEF USE_LOG}
        //shrLog(LOGBOTH, 0, " Error %i in clGetPlatformIDs Call !!!\n\n", ciErrNum);
-       shrLog('Error '+IntToStr(ciErrNum)+' in clGetPlatformIDs Call !!!');
+       shrLog('Error ' + IntToStr(ciErrNum) + ' in clGetPlatformIDs Call !!!');
     {$ENDIF}
-    Result:=-1000;
+    Result := -1000;
     Exit;
   end
   else
     begin
-      if num_platforms=0 then
+      if num_platforms = 0 then
         begin
           {$IFDEF USE_LOG}
            //shrLog(LOGBOTH, 0, "No OpenCL platform found!\n\n");
             shrLog('No OpenCL platform found!');
           {$ENDIF}
-          Result:=-2000;
+          Result := -2000;
           Exit;
         end
       else
         begin
-          SetLength(clPlatformIDs,num_platforms*SizeOf(PCL_PLATFORM_ID));
-          //GetMem(clPlatformIDs,num_platforms*SizeOf(PCL_PLATFORM_ID));
-          if clPlatformIDs=nil then
+          SetLength(clPlatformIDs, num_platforms * SizeOf(PCL_PLATFORM_ID));
+          //GetMem(clPlatformIDs, num_platforms * SizeOf(PCL_PLATFORM_ID));
+          if clPlatformIDs = nil then
             begin
               {$IFDEF USE_LOG}
                //shrLog(LOGBOTH, 0, "Failed to allocate memory for cl_platform ID's!\n\n");
                 shrLog('Failed to allocate memory for cl_platform ID"s!');
               {$ENDIF}
-              Result:=-3000;
+              Result := -3000;
               Exit;
             end;
 
-            {ciErrNum:=}clGetPlatformIDs(num_platforms,@clPlatformIDs,nil);
-            for i:=0 to num_platforms-1 do
+            {ciErrNum:=}clGetPlatformIDs(num_platforms, @clPlatformIDs, nil);
+            for i := 0 to num_platforms - 1 do
             begin
-              ciErrNum:=clGetPlatformInfo(@clPlatformIDs[i],CL_PLATFORM_NAME,1024,@Chbuffer,nil);
-              if ciErrNum=CL_SUCCESS then
+              ciErrNum := clGetPlatformInfo(@clPlatformIDs[i], CL_PLATFORM_NAME, 1024, @Chbuffer, nil);
+              if ciErrNum = CL_SUCCESS then
               begin
-                if StrPos(chBuffer,Default_Platform)<>'' then
+                if StrPos(chBuffer, Default_Platform) <> '' then
                   begin
-                    clSelectedPlatformID:=@clPlatformIDs[i];
+                    clSelectedPlatformID := @clPlatformIDs[i];
                     Break;
                   end;
               end;
             end;
-            if clSelectedPlatformID=nil then
+            if clSelectedPlatformID = nil then
             begin
               {$IFDEF USE_LOG}
                 //shrLog(LOGBOTH, 0, "WARNING: NVIDIA OpenCL platform not found - defaulting to first platform!\n\n");
@@ -213,30 +213,30 @@ begin
               {$ENDIF}
             end;
             //FreeMem(clPlatformIDs); //Delphi 6 Work Delph 2010 error
-            SetLength(clPlatformIDs,0);
+            SetLength(clPlatformIDs, 0);
         end;
     end;
-    Result:=CL_SUCCESS;
+    Result := CL_SUCCESS;
 end;
 
 procedure oclPrintDevName(var device: PCL_device_id);
 var
-  device_string: Array[0..1023]of AnsiChar;
-  indevice: integer;//promo value
+  device_string: array [0..1023] of AnsiChar;
+  indevice: Integer;//promo value
 begin
-  indevice:=Integer(device);
+  indevice := Integer(device);
   clGetDeviceInfo(device, CL_DEVICE_NAME, SizeOf(device_string), @device_string, nil);
   {$IFDEF USE_LOG}
     //shrLog(iLogMode, 0.0, " Device %s\n", device_string);
     shrLog({'Device '+}device_string);
   {$ENDIF}
-  device:=PCL_device_id(indevice);
+  device := PCL_device_id(indevice);
 end;
 
 function oclGetFirstDev(cxGPUContext: PCL_context): PPCL_device_id;
 var
   szParmDataBytes: TSize_t;
-  cdDevices: Array of PCL_device_id;
+  cdDevices: array of PCL_device_id;
 begin
     // get the list of GPU devices associated with context
     clGetContextInfo(cxGPUContext, CL_CONTEXT_DEVICES, 0, nil, @szParmDataBytes);
@@ -274,7 +274,7 @@ var
   _type: Tcl_device_type;
   compute_units: Tcl_uint;
   workitem_dims: Tsize_t;
-  workitem_size: Array [0..2]of Tsize_t;
+  workitem_size: array [0..2] of Tsize_t;
   workgroup_size: Tsize_t;
   clock_frequency: Tcl_uint;
   addr_bits: Tcl_uint;
@@ -286,7 +286,7 @@ var
   image_support: Tcl_bool;
   max_read_image_args: Tcl_uint;
   max_write_image_args: Tcl_uint;
-  szMaxDims: Array [0..4]of Tsize_t;
+  szMaxDims: array [0..4] of Tsize_t;
   compute_capability_major,
   compute_capability_minor: Tcl_uint;
   regs_per_block: Tcl_uint;
@@ -312,7 +312,7 @@ begin
 
   // CL_DEVICE_NAME
 
-  indevice:=Integer(device); //this value promo<-device
+  indevice := Integer(device); //this value promo<-device
 
   clGetDeviceInfo(PCL_device_id(indevice), CL_DEVICE_NAME, SizeOf(device_string), @device_string, nil);
   //Writeln()
@@ -320,7 +320,7 @@ begin
   //Writeln('CL_DEVICE_NAME: '+device_string);
 
   {$IFDEF USE_LOG}
-    shrLog('CL_DEVICE_NAME: ' + device_string);
+    shrLog(AnsiString('CL_DEVICE_NAME: ') + device_string);
   {$ENDIF}
   //Writeln(Integer(device));
   // CL_DEVICE_VENDOR
@@ -330,7 +330,7 @@ begin
   //Writeln('CL_DEVICE_VENDOR: '+device_string);
   //Writeln(integer(device^));
   {$IFDEF USE_LOG}
-    shrLog('CL_DEVICE_VENDOR: ' + device_string);
+    shrLog(AnsiString('CL_DEVICE_VENDOR: ') + device_string);
   {$ENDIF}
 
   // CL_DRIVER_VERSION
@@ -338,7 +338,7 @@ begin
   //shrLog(iLogMode, 0.0, "  CL_DRIVER_VERSION: \t\t\t%s\n", device_string);
   //Writeln('  CL_DRIVER_VERSION: ',device_string);
   {$IFDEF USE_LOG}
-    shrLog('CL_DRIVER_VERSION: '+device_string);
+    shrLog(AnsiString('CL_DRIVER_VERSION: ') + device_string);
   {$ENDIF}
 
   // CL_DEVICE_INFO
@@ -382,9 +382,9 @@ begin
 
   clGetDeviceInfo(PCL_device_id(indevice), CL_DEVICE_MAX_COMPUTE_UNITS, SizeOf(compute_units), @compute_units, nil);
   //shrLog(iLogMode, 0.0, "  CL_DEVICE_MAX_COMPUTE_UNITS:\t\t%u\n", compute_units);
-  //Writeln('CL_DEVICE_MAX_COMPUTE_UNITS: ',compute_units);
+  //Writeln('CL_DEVICE_MAX_COMPUTE_UNITS: ', compute_units);
   {$IFDEF USE_LOG}
-    shrLog('CL_DEVICE_MAX_COMPUTE_UNITS: '+IntToStr(compute_units));
+    shrLog('CL_DEVICE_MAX_COMPUTE_UNITS: ' + IntToStr(compute_units));
   {$ENDIF}
 
 
@@ -394,34 +394,34 @@ begin
   //shrLog(iLogMode, 0.0, "  CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS:\t%u\n", workitem_dims);
   //Writeln('CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS: ',workitem_dims);
   {$IFDEF USE_LOG}
-    shrLog('CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS: '+IntToStr(workitem_dims));
+    shrLog('CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS: ' + IntToStr(workitem_dims));
   {$ENDIF}
 
   // CL_DEVICE_MAX_WORK_ITEM_SIZES
 
   clGetDeviceInfo(PCL_device_id(indevice), CL_DEVICE_MAX_WORK_ITEM_SIZES, SizeOf(workitem_size), @workitem_size, nil);
   //shrLog(iLogMode, 0.0, "  CL_DEVICE_MAX_WORK_ITEM_SIZES:\t%u / %u / %u \n", workitem_size[0], workitem_size[1], workitem_size[2]);
-  //Writeln('CL_DEVICE_MAX_WORK_ITEM_SIZES: ',workitem_size[0],' ',workitem_size[1],' ',workitem_size[2]);
+  //Writeln('CL_DEVICE_MAX_WORK_ITEM_SIZES: ',workitem_size[0], ' ',workitem_size[1], ' ',workitem_size[2]);
   {$IFDEF USE_LOG}
-    shrLog('CL_DEVICE_MAX_WORK_ITEM_SIZES: '+IntToStr(workitem_size[0])+' '+IntToStr(workitem_size[1])+' '+IntToStr(workitem_size[2]));
+    shrLog('CL_DEVICE_MAX_WORK_ITEM_SIZES: ' + IntToStr(workitem_size[0])+' ' + IntToStr(workitem_size[1])+' ' + IntToStr(workitem_size[2]));
   {$ENDIF}
 
   // CL_DEVICE_MAX_WORK_GROUP_SIZE
 
   clGetDeviceInfo(PCL_device_id(indevice), CL_DEVICE_MAX_WORK_GROUP_SIZE, SizeOf(workgroup_size), @workgroup_size, nil);
   //shrLog(iLogMode, 0.0, "  CL_DEVICE_MAX_WORK_GROUP_SIZE:\t%u\n", workgroup_size);
-  //Writeln('CL_DEVICE_MAX_WORK_GROUP_SIZE: ',workitem_size[0],' ',workitem_size[1],' ',workgroup_size);
+  //Writeln('CL_DEVICE_MAX_WORK_GROUP_SIZE: ',workitem_size[0], ' ',workitem_size[1], ' ',workgroup_size);
   {$IFDEF USE_LOG}
-    shrLog('CL_DEVICE_MAX_WORK_GROUP_SIZES: '+IntToStr(workgroup_size));
+    shrLog('CL_DEVICE_MAX_WORK_GROUP_SIZES: ' + IntToStr(workgroup_size));
   {$ENDIF}
 
   // CL_DEVICE_MAX_CLOCK_FREQUENCY
 
   clGetDeviceInfo(PCL_device_id(indevice), CL_DEVICE_MAX_CLOCK_FREQUENCY, SizeOf(clock_frequency), @clock_frequency, nil);
   //shrLog(iLogMode, 0.0, "  CL_DEVICE_MAX_CLOCK_FREQUENCY:\t%u MHz\n", clock_frequency);
-  //Writeln('CL_DEVICE_MAX_CLOCK_FREQUENCY: ',clock_frequency,' MHz');
+  //Writeln('CL_DEVICE_MAX_CLOCK_FREQUENCY: ', clock_frequency, ' MHz');
   {$IFDEF USE_LOG}
-    shrLog('CL_DEVICE_MAX_CLOCK_FREQUENCY: '+IntToStr(clock_frequency)+' MHz');
+    shrLog('CL_DEVICE_MAX_CLOCK_FREQUENCY: ' + IntToStr(clock_frequency)+' MHz');
   {$ENDIF}
 
   // CL_DEVICE_ADDRESS_BITS
@@ -430,25 +430,25 @@ begin
   //shrLog(iLogMode, 0.0, "  CL_DEVICE_ADDRESS_BITS:\t\t%u\n", addr_bits);
   //Writeln('CL_DEVICE_ADDRESS_BITS: ',addr_bits);
   {$IFDEF USE_LOG}
-    shrLog('CL_DEVICE_ADDRESS_BITS: '+IntToStr(addr_bits));
+    shrLog('CL_DEVICE_ADDRESS_BITS: ' + IntToStr(addr_bits));
   {$ENDIF}
 
   // CL_DEVICE_MAX_MEM_ALLOC_SIZE
 
   clGetDeviceInfo(PCL_device_id(indevice), CL_DEVICE_MAX_MEM_ALLOC_SIZE, SizeOf(max_mem_alloc_size), @max_mem_alloc_size, nil);
   //shrLog(iLogMode, 0.0, "  CL_DEVICE_MAX_MEM_ALLOC_SIZE:\t\t%u MByte\n", (unsigned int)(max_mem_alloc_size / (1024 * 1024)));
-  //Writeln('CL_DEVICE_MAX_MEM_ALLOC_SIZE: ',Round(max_mem_alloc_size/(1024 * 1024)),' MByte');
+  //Writeln('CL_DEVICE_MAX_MEM_ALLOC_SIZE: ',Round(max_mem_alloc_size/(1024 * 1024)), ' MByte');
   {$IFDEF USE_LOG}
-    shrLog('CL_DEVICE_MAX_MEM_ALLOC_SIZE: '+IntToStr(Round(max_mem_alloc_size/(1024 * 1024)))+' MByte');
+    shrLog('CL_DEVICE_MAX_MEM_ALLOC_SIZE: ' + IntToStr(Round(max_mem_alloc_size/(1024 * 1024)))+' MByte');
   {$ENDIF}
 
   // CL_DEVICE_GLOBAL_MEM_SIZE
 
   clGetDeviceInfo(PCL_device_id(indevice), CL_DEVICE_GLOBAL_MEM_SIZE, SizeOf(mem_size), @mem_size, nil);
   //shrLog(iLogMode, 0.0, "  CL_DEVICE_GLOBAL_MEM_SIZE:\t\t%u MByte\n", (unsigned int)(mem_size / (1024 * 1024)));
-  //Writeln('CL_DEVICE_GLOBAL_MEM_SIZE: ',Round(mem_size/(1024 * 1024)),' MByte');
+  //Writeln('CL_DEVICE_GLOBAL_MEM_SIZE: ',Round(mem_size/(1024 * 1024)), ' MByte');
   {$IFDEF USE_LOG}
-    shrLog('CL_DEVICE_GLOBAL_MEM_SIZE: '+IntToStr(Round(mem_size/(1024 * 1024)))+' MByte');
+    shrLog('CL_DEVICE_GLOBAL_MEM_SIZE: ' + IntToStr(Round(mem_size/(1024 * 1024)))+' MByte');
   {$ENDIF}
 
   // CL_DEVICE_ERROR_CORRECTION_SUPPORT
@@ -492,17 +492,17 @@ begin
   // CL_DEVICE_LOCAL_MEM_SIZE
   clGetDeviceInfo(PCL_device_id(indevice), CL_DEVICE_LOCAL_MEM_SIZE, SizeOf(mem_size), @mem_size, nil);
   //shrLog(iLogMode, 0.0, "  CL_DEVICE_LOCAL_MEM_SIZE:\t\t%u KByte\n", (unsigned int)(mem_size / 1024));
-  //Writeln('CL_DEVICE_LOCAL_MEM_SIZE: ',Round(mem_size/(1024)),' KByte');
+  //Writeln('CL_DEVICE_LOCAL_MEM_SIZE: ',Round(mem_size/(1024)), ' KByte');
   {$IFDEF USE_LOG}
-    shrLog('CL_DEVICE_LOCAL_MEM_SIZE: '+IntToStr(Round(mem_size/(1024)))+' KByte');
+    shrLog('CL_DEVICE_LOCAL_MEM_SIZE: ' + IntToStr(Round(mem_size/(1024)))+' KByte');
   {$ENDIF}
 
   // CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE
   clGetDeviceInfo(PCL_device_id(indevice), CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE, SizeOf(mem_size), @mem_size, nil);
   //shrLog(iLogMode, 0.0, "  CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE:\t%u KByte\n", (unsigned int)(mem_size / 1024));
-  //Writeln('CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE: ',Round(mem_size/(1024)),' KByte');
+  //Writeln('CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE: ',Round(mem_size/(1024)), ' KByte');
   {$IFDEF USE_LOG}
-    shrLog('CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE: '+IntToStr(Round(mem_size/(1024)))+' KByte');
+    shrLog('CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE: ' + IntToStr(Round(mem_size/(1024)))+' KByte');
   {$ENDIF}
 
   // CL_DEVICE_QUEUE_PROPERTIES
@@ -534,25 +534,25 @@ begin
   //shrLog(iLogMode, 0.0, "  CL_DEVICE_IMAGE_SUPPORT:\t\t%u\n", image_support);
   //Writeln('CL_DEVICE_IMAGE_SUPPORT: ',image_support);
   {$IFDEF USE_LOG}
-    shrLog('CL_DEVICE_IMAGE_SUPPORT: '+IntToStr(image_support));
+    shrLog('CL_DEVICE_IMAGE_SUPPORT: ' + IntToStr(image_support));
   {$ENDIF}
 
   // CL_DEVICE_MAX_READ_IMAGE_ARGS
 
   clGetDeviceInfo(PCL_device_id(indevice), CL_DEVICE_MAX_READ_IMAGE_ARGS, SizeOf(max_read_image_args), @max_read_image_args, nil);
   //shrLog(iLogMode, 0.0, "  CL_DEVICE_MAX_READ_IMAGE_ARGS:\t%u\n", max_read_image_args);
-  //Writeln('CL_DEVICE_MAX_READ_IMAGE_ARGS: ',max_read_image_args);
+  //Writeln('CL_DEVICE_MAX_READ_IMAGE_ARGS: ', max_read_image_args);
   {$IFDEF USE_LOG}
-    shrLog('CL_DEVICE_MAX_READ_IMAGE_ARGS: '+IntToStr(max_read_image_args));
+    shrLog('CL_DEVICE_MAX_READ_IMAGE_ARGS: ' + IntToStr(max_read_image_args));
   {$ENDIF}
 
   // CL_DEVICE_MAX_WRITE_IMAGE_ARGS
 
   clGetDeviceInfo(PCL_device_id(indevice), CL_DEVICE_MAX_WRITE_IMAGE_ARGS, SizeOf(max_write_image_args), @max_write_image_args, nil);
   //shrLog(iLogMode, 0.0, "  CL_DEVICE_MAX_WRITE_IMAGE_ARGS:\t%u\n", max_write_image_args);
-  //Writeln('CL_DEVICE_MAX_WRITE_IMAGE_ARGS: ',max_write_image_args);
+  //Writeln('CL_DEVICE_MAX_WRITE_IMAGE_ARGS: ', max_write_image_args);
   {$IFDEF USE_LOG}
-    shrLog('CL_DEVICE_MAX_WRITE_IMAGE_ARGS: '+IntToStr(max_write_image_args));
+    shrLog('CL_DEVICE_MAX_WRITE_IMAGE_ARGS: ' + IntToStr(max_write_image_args));
   {$ENDIF}
 
   // CL_DEVICE_IMAGE2D_MAX_WIDTH, CL_DEVICE_IMAGE2D_MAX_HEIGHT, CL_DEVICE_IMAGE3D_MAX_WIDTH, CL_DEVICE_IMAGE3D_MAX_HEIGHT, CL_DEVICE_IMAGE3D_MAX_DEPTH
@@ -564,33 +564,33 @@ begin
   {$ENDIF}
   clGetDeviceInfo(PCL_device_id(indevice), CL_DEVICE_IMAGE2D_MAX_WIDTH, SizeOf(Tsize_t), @szMaxDims[0], nil);
   //shrLog(iLogMode, 0.0, "\t\t\t2D_MAX_WIDTH\t %u\n", szMaxDims[0]);
-  //Writeln('t2D_MAX_WIDTH: ',szMaxDims[0]);
+  //Writeln('t2D_MAX_WIDTH: ', szMaxDims[0]);
   {$IFDEF USE_LOG}
-    shrLog('t2D_MAX_WIDTH: '+IntToStr(szMaxDims[0]));
+    shrLog('t2D_MAX_WIDTH: ' + IntToStr(szMaxDims[0]));
   {$ENDIF}
   clGetDeviceInfo(PCL_device_id(indevice), CL_DEVICE_IMAGE2D_MAX_HEIGHT, SizeOf(Tsize_t), @szMaxDims[1], nil);
   //shrLog(iLogMode, 0.0, "\t\t\t\t\t2D_MAX_HEIGHT\t %u\n", szMaxDims[1]);
-  //Writeln('t2D_MAX_HEIGHT: ',szMaxDims[1]);
+  //Writeln('t2D_MAX_HEIGHT: ', szMaxDims[1]);
   {$IFDEF USE_LOG}
-    shrLog('t2D_MAX_HEIGHT: '+IntToStr(szMaxDims[1]));
+    shrLog('t2D_MAX_HEIGHT: ' + IntToStr(szMaxDims[1]));
   {$ENDIF}
   clGetDeviceInfo(PCL_device_id(indevice), CL_DEVICE_IMAGE3D_MAX_WIDTH, SizeOf(Tsize_t), @szMaxDims[2], nil);
   //shrLog(iLogMode, 0.0, "\t\t\t\t\t3D_MAX_WIDTH\t %u\n", szMaxDims[2]);
-  //Writeln('t3D_MAX_WIDTH: ',szMaxDims[2]);
+  //Writeln('t3D_MAX_WIDTH: ', szMaxDims[2]);
   {$IFDEF USE_LOG}
-    shrLog('t3D_MAX_WIDTH: '+IntToStr(szMaxDims[2]));
+    shrLog('t3D_MAX_WIDTH: ' + IntToStr(szMaxDims[2]));
   {$ENDIF}
   clGetDeviceInfo(PCL_device_id(indevice), CL_DEVICE_IMAGE3D_MAX_HEIGHT, SizeOf(Tsize_t), @szMaxDims[3], nil);
   //shrLog(iLogMode, 0.0, "\t\t\t\t\t3D_MAX_HEIGHT\t %u\n", szMaxDims[3]);
-  //Writeln('t3D_MAX_HEIGHT: ',szMaxDims[3]);
+  //Writeln('t3D_MAX_HEIGHT: ', szMaxDims[3]);
   {$IFDEF USE_LOG}
-    shrLog('t3D_MAX_HEIGHT: '+IntToStr(szMaxDims[3]));
+    shrLog('t3D_MAX_HEIGHT: ' + IntToStr(szMaxDims[3]));
   {$ENDIF}
   clGetDeviceInfo(PCL_device_id(indevice), CL_DEVICE_IMAGE3D_MAX_DEPTH, SizeOf(Tsize_t), @szMaxDims[4], nil);
   //shrLog(iLogMode, 0.0, "\t\t\t\t\t3D_MAX_DEPTH\t %u\n", szMaxDims[4]);
-  //Writeln('t3D_MAX_DEPTH: ',szMaxDims[4]);
+  //Writeln('t3D_MAX_DEPTH: ', szMaxDims[4]);
   {$IFDEF USE_LOG}
-    shrLog('t3D_MAX_DEPTH: '+IntToStr(szMaxDims[4]));
+    shrLog('t3D_MAX_DEPTH: ' + IntToStr(szMaxDims[4]));
   {$ENDIF}
 
   device_string:='';
@@ -614,7 +614,7 @@ begin
 
 
 
-      szSpacePos:=Pos(' ',AnsiString(device_string));//stdDevString);
+      szSpacePos := Pos(AnsiString(' '), AnsiString(device_string));//stdDevString);
       //szSpacePos := stdDevString.find(' ', szOldPos); // extensions string is space delimited
 
       while (szSpacePos <> Cardinal(Length(AnsiString(device_string)))) and((szSpacePos - szOldPos) > 1)and(szSpacePos<1024) do
@@ -623,32 +623,33 @@ begin
           if( strcmp("cl_nv_device_attribute_query", stdDevString.substr(szOldPos, szSpacePos - szOldPos).c_str()) == 0 )
               nv_device_attibute_query = true;   }
 
-          if 'cl_nv_device_attribute_query'=Copy(AnsiString(device_string),szOldPos,szSpacePos - szOldPos)then nv_device_attibute_query:=true;
+          if 'cl_nv_device_attribute_query'=Copy(AnsiString(device_string), szOldPos, szSpacePos - szOldPos) then
+            nv_device_attibute_query := true;
 
           if (szOldPos > 1)then
           begin
-              //shrLog(iLogMode, 0.0, "\t\t");
-              //Writeln(' ');
+            //shrLog(iLogMode, 0.0, "\t\t");
+            //Writeln(' ');
           end;
           //shrLog(iLogMode, 0.0, "\t\t\t%s\n", stdDevString.substr(szOldPos, szSpacePos - szOldPos).c_str());
-          //Writeln(Copy(String(device_string),szOldPos,szSpacePos - szOldPos));
+          //Writeln(Copy(String(device_string), szOldPos, szSpacePos - szOldPos));
           {$IFDEF USE_LOG}
-            shrLog(Copy(String(device_string),szOldPos,szSpacePos - szOldPos));
+            shrLog(Copy(AnsiString(device_string), szOldPos, szSpacePos - szOldPos));
           {$ENDIF}
 
           szOldPos := szSpacePos + 1;
           //szSpacePos := stdDevString.find(' ', szOldPos);
-          szSpacePos:=pos2(' ',AnsiString(device_string),szOldPos);
+          szSpacePos := pos2(' ', AnsiString(device_string), szOldPos);
           if (szOldPos-szSpacePos=1) then Break;;
       end;
-      //Writeln(Copy(String(device_string),szOldPos,Length(device_string)-szOldPos+1));
+      //Writeln(Copy(String(device_string), szOldPos, Length(device_string) - szOldPos + 1));
   end
   else
   begin
       //shrLog(iLogMode, 0.0, "  CL_DEVICE_EXTENSIONS: None\n");
       //Writeln('CL_DEVICE_MAX_WORK_GROUP_SIZE: None');
           {$IFDEF USE_LOG}
-            shrLog('CL_DEVICE_MAX_WORK_GROUP_SIZE: None');
+            shrLog(AnsiString('CL_DEVICE_MAX_WORK_GROUP_SIZE: None'));
           {$ENDIF}
   end;
 
@@ -661,9 +662,9 @@ begin
       clGetDeviceInfo(PCL_device_id(indevice), CL_NV_DEVICE_COMPUTE_CAPABILITY_MINOR, SizeOf(Tcl_uint), @compute_capability_minor, nil);
 
       //shrLog(iLogMode, 0.0, "\n  CL_NV_DEVICE_COMPUTE_CAPABILITY:\t%u.%u\n", compute_capability_major, compute_capability_minor);
-      //Writeln('CL_NV_DEVICE_COMPUTE_CAPABILITY: ',compute_capability_major,' ' ,compute_capability_minor);
+      //Writeln('CL_NV_DEVICE_COMPUTE_CAPABILITY: ', compute_capability_major, ' ' , compute_capability_minor);
       {$IFDEF USE_LOG}
-        shrLog('CL_NV_DEVICE_COMPUTE_CAPABILITY: '+IntToStr(compute_capability_major)+' '+IntToStr(compute_capability_minor));
+        shrLog('CL_NV_DEVICE_COMPUTE_CAPABILITY: ' + IntToStr(compute_capability_major)+' ' + IntToStr(compute_capability_minor));
       {$ENDIF}
 
       clGetDeviceInfo(PCL_device_id(indevice), CL_NV_DEVICE_REGISTERS_PER_BLOCK, SizeOf(Tcl_uint), @regs_per_block, nil);
@@ -675,7 +676,7 @@ begin
       //shrLog(iLogMode, 0.0, "  CL_NV_DEVICE_WARP_SIZE:\t\t%u\n", warp_size);
       //Writeln('CL_NV_DEVICE_WARP_SIZE: ',warp_size);
       {$IFDEF USE_LOG}
-        shrLog('CL_NV_DEVICE_WARP_SIZE: '+IntToStr(warp_size));
+        shrLog('CL_NV_DEVICE_WARP_SIZE: ' + IntToStr(warp_size));
       {$ENDIF}
 
       clGetDeviceInfo(PCL_device_id(indevice), CL_NV_DEVICE_GPU_OVERLAP, SizeOf(Tcl_bool), @gpu_overlap, nil);
@@ -749,7 +750,7 @@ begin
   //       vec_width[0], vec_width[1], vec_width[2], vec_width[3], vec_width[4]);
   //Writeln('CHAR: ',vec_width[0],';',#13#10,'SHORT: ',vec_width[1],';',#13#10,'INT: ',vec_width[2],';',#13#10,'LONG: ',vec_width[3],';',#13#10,'FLOAT: ',vec_width[4],';',#13#10,'DOUBLE: ',vec_width[5]);
   {$IFDEF USE_LOG}
-    shrLog('CHAR: '+IntToStr(vec_width[0])+';'+#13#10+'SHORT: '+IntToStr(vec_width[1])+';'+#13#10+'INT: '+IntToStr(vec_width[2])+';'+#13#10+'LONG: '+IntToStr(vec_width[3])+';'+#13#10+'FLOAT: '+IntToStr(vec_width[4])+';'+#13#10+'DOUBLE: '+IntToStr(vec_width[5]));
+    shrLog('CHAR: ' + IntToStr(vec_width[0]) + ';' + #13#10 + 'SHORT: ' + IntToStr(vec_width[1]) + ';'+#13#10+'INT: ' + IntToStr(vec_width[2]) + ';' + #13#10 + 'LONG: ' + IntToStr(vec_width[3])+';'+#13#10+'FLOAT: ' + IntToStr(vec_width[4])+';'+#13#10+'DOUBLE: ' + IntToStr(vec_width[5]));
   {$ENDIF}
   //Writeln(Integer(device));
   device := PCL_device_id(indevice);
@@ -771,9 +772,9 @@ begin
   clGetContextInfo(cxGPUContext, CL_CONTEXT_DEVICES, 0, nil, @szParmDataBytes);
 
   //cdDevices := (cl_device_id*) malloc(szParmDataBytes);
-  SetLength(cdDevices,szParmDataBytes);
+  SetLength(cdDevices, szParmDataBytes);
 
-  //GetMem(cdDevices,szParmDataBytes);
+  //GetMem(cdDevices, szParmDataBytes);
   device_count := Round(szParmDataBytes / SizeOf(Pcl_device_id));
 
   clGetContextInfo(cxGPUContext, CL_CONTEXT_DEVICES, szParmDataBytes, cdDevices, nil);
@@ -803,17 +804,17 @@ begin
     flops := compute_units * clock_frequency;
 		if( flops > max_flops )then
 		begin
-			max_flops        := flops;
+			max_flops := flops;
 			max_flops_device := @cdDevices[current_device];
 		end;
 		inc(current_device);
 	end;
 
   //free(cdDevices);
-  SetLength(cdDevices,0);
+  SetLength(cdDevices, 0);
   //FreeMem(cdDevices);
 
-	Result:=max_flops_device;
+	Result := max_flops_device;
 end;
 
 function oclLoadProgSource(const cFilename: AnsiString;
@@ -844,7 +845,7 @@ begin
 *)
 
 
-  Assign(pFileStream,cFilename);
+  Assign(pFileStream, String(cFilename));
   Reset(pFileStream);
 
   {
@@ -856,7 +857,7 @@ begin
   // allocate a buffer for the source code string and read it in
   //cSourceString := (char *)malloc(szSourceLength + szPreambleLength + 1);
 
-  cSourceString:=''+cPreamble;
+  cSourceString := AnsiString('') + cPreamble;
   //memcpy(cSourceString, cPreamble, szPreambleLength);
 
   (*
@@ -911,19 +912,19 @@ var
 begin
     // Grab the number of devices associated witht the program
 
-    Status:=clGetProgramInfo(cpProgram, CL_PROGRAM_NUM_DEVICES, SizeOf(Tcl_uint), @num_devices, nil);
+    Status := clGetProgramInfo(cpProgram, CL_PROGRAM_NUM_DEVICES, SizeOf(Tcl_uint), @num_devices, nil);
     Writeln(Status);
     // Grab the device ids
     //cl_device_id* devices = (cl_device_id* ) malloc(num_devices * SizeOf(cl_device_id));
-    //SetLength(devices,num_devices*SizeOf(PCL_device_id));
-    GetMem(devices,num_devices*SizeOf(PCL_device_id));
-    Status:=clGetProgramInfo(cpProgram, CL_PROGRAM_DEVICES, num_devices * SizeOf(Pcl_device_id), devices, nil);
+    //SetLength(devices, num_devices * SizeOf(PCL_device_id));
+    GetMem(devices, num_devices * SizeOf(PCL_device_id));
+    Status := clGetProgramInfo(cpProgram, CL_PROGRAM_DEVICES, num_devices * SizeOf(Pcl_device_id), devices, nil);
     Writeln(Status);
     // Grab the sizes of the binaries
     //size_t* binary_sizes = (size_t* )malloc(num_devices * SizeOf(size_t));
-    //SetLength(binary_sizes,num_devices*SizeOf(TSize_t));
-    GetMem(binary_sizes,num_devices*SizeOf(TSize_t));
-    Status:=clGetProgramInfo(cpProgram, CL_PROGRAM_BINARY_SIZES, num_devices * SizeOf(Tsize_t), binary_sizes^, nil);
+    //SetLength(binary_sizes, num_devices * SizeOf(TSize_t));
+    GetMem(binary_sizes, num_devices * SizeOf(TSize_t));
+    Status := clGetProgramInfo(cpProgram, CL_PROGRAM_BINARY_SIZES, num_devices * SizeOf(Tsize_t), binary_sizes^, nil);
     Writeln(Status);
     // Now get the binaries
     //char** ptx_code = (char** ) malloc(num_devices * SizeOf(char* ));
@@ -934,12 +935,12 @@ begin
     for i:=0 to num_devices-1 do
     begin
      //Writeln(Integer(binary_sizes^[i]));
-     ptx_code^[i]:=PAnsichar(binary_sizes^[i]);
+     ptx_code^[i] := PAnsichar(binary_sizes^[i]);
      //GetMem(ptx_code^[i],binary_sizes^[i]);
     end;
     {$R+}
 
-    Status:=clGetProgramInfo(cpProgram, CL_PROGRAM_BINARIES, 4, ptx_code^, nil);
+    Status := clGetProgramInfo(cpProgram, CL_PROGRAM_BINARIES, 4, ptx_code^, nil);
     Writeln(Status);
 
     // Find the index of the device of interest
@@ -958,7 +959,7 @@ begin
     begin
         //*binary = ptx_code[idx];
         //GetMem(binary,10000);
-        //binary:=Pointer(ptx_code^[idx]);
+        //binary := Pointer(ptx_code^[idx]);
         Writeln(ptx_code^[idx-1]);
         //*length = binary_sizes[idx];
         //length:= @binary_sizes[idx];
@@ -994,9 +995,9 @@ procedure oclLogPtx(cpProgram: Pcl_program;
                     const cPtxFileName: AnsiString);
 var
   num_devices: TCL_uint;
-  devices: Array of PCL_device_id;
-  binary_sizes: Array of TSize_t;
-  ptx_code: Array of PAnsiChar;
+  devices: array of PCL_device_id;
+  binary_sizes: array of TSize_t;
+  ptx_code: array of PAnsiChar;
   i: cardinal;
   idx: cardinal;
   pFileStream: File;
@@ -1004,21 +1005,21 @@ var
   Status: TCL_int;
 begin
     // Grab the number of devices associated with the program
-    Status:=clGetProgramInfo(cpProgram, CL_PROGRAM_NUM_DEVICES, SizeOf(Tcl_uint), @num_devices, nil);
+    Status := clGetProgramInfo(cpProgram, CL_PROGRAM_NUM_DEVICES, SizeOf(Tcl_uint), @num_devices, nil);
     Writeln(Status);
     // Grab the device ids
     //cl_device_id* devices = (cl_device_id* ) malloc(num_devices * SizeOf(cl_device_id));
-    SetLength(devices,num_devices*SizeOf(Pcl_device_id));
-    Status:=clGetProgramInfo(cpProgram, CL_PROGRAM_DEVICES, num_devices * SizeOf(Pcl_device_id), devices, nil);
+    SetLength(devices, num_devices * SizeOf(Pcl_device_id));
+    Status := clGetProgramInfo(cpProgram, CL_PROGRAM_DEVICES, num_devices * SizeOf(Pcl_device_id), devices, nil);
     Writeln(Status);
     // Grab the sizes of the binaries
     //size_t* binary_sizes = (size_t* )malloc(num_devices * SizeOf(size_t));
-    SetLength(binary_sizes,num_devices*SizeOf(TSize_t));
-    Status:=clGetProgramInfo(cpProgram, CL_PROGRAM_BINARY_SIZES, num_devices * SizeOf(Tsize_t), binary_sizes, nil);
+    SetLength(binary_sizes, num_devices * SizeOf(TSize_t));
+    Status := clGetProgramInfo(cpProgram, CL_PROGRAM_BINARY_SIZES, num_devices * SizeOf(Tsize_t), binary_sizes, nil);
     Writeln(Status);
     // Now get the binaries
     //char** ptx_code = (char** )malloc(num_devices * SizeOf(char* ));
-    SetLength(ptx_code,num_devices*SizeOf(PAnsiChar));
+    SetLength(ptx_code,num_devices * SizeOf(PAnsiChar));
     for i:=0 to num_devices-1 do
     begin
       //SetLength(ptx_code[i],binary_sizes[i]);
@@ -1028,7 +1029,7 @@ begin
     {
         ptx_code[i] = (char* )malloc(binary_sizes[i]);
     }
-    Status:=clGetProgramInfo(cpProgram, CL_PROGRAM_BINARIES, binary_sizes[0], ptx_code, nil);
+    Status := clGetProgramInfo(cpProgram, CL_PROGRAM_BINARIES, binary_sizes[0], ptx_code, nil);
     Writeln(Status);
     // Find the index of the device of interest
     idx := 0;
@@ -1047,8 +1048,8 @@ begin
             //shrLog(LOGBOTH, 0, "\nWriting ptx to separate file: %s ...\n\n", cPtxFileName);
             //Writeln('');
             //MainLog('');
-            //Writeln('Writing ptx to separate file: ',cPtxFileName);
-            //MainLog('Writing ptx to separate file: '+cPtxFileName);
+            //Writeln('Writing ptx to separate file: ', cPtxFileName);
+            //MainLog('Writing ptx to separate file: ' + cPtxFileName);
             //Writeln('');
             //MainLog('');
             {$IFDEF USE_LOG}
@@ -1059,7 +1060,7 @@ begin
             //FILE* pFileStream = NULL;
             //#ifdef _WIN32
                 //fopen_s(&pFileStream, cPtxFileName, "wb");
-                AssignFile(pFileStream,cPtxFileName);
+                AssignFile(pFileStream, cPtxFileName);
                 Rewrite(pFileStream,1);
             //#else
             //    pFileStream = fopen(cPtxFileName, "wb");
@@ -1127,7 +1128,7 @@ begin
     shrLog('__________________________________');
   {$ENDIF}
   //shrLog(LOGBOTH, 0, "\n%s\nBuild Log:\n%s\n%s\n", HDASHLINE, cBuildLog, HDASHLINE);
-  cdDevice:=PCl_device_id(inDevice);
+  cdDevice := PCl_device_id(inDevice);
 end;
 
 
@@ -1145,7 +1146,7 @@ begin
   begin
     if (@APcl_mem(cmMemobjs)[i]<>nil)then
     begin
-      {status:=}clReleaseMemObject(PCL_mem(@APCL_mem(cmMemobjs^)[i]));
+      {status := }clReleaseMemObject(PCL_mem(@APCL_mem(cmMemobjs^)[i]));
       //Writeln(status);
     end;
   end;
@@ -1158,18 +1159,19 @@ end;
 
 procedure shrLog(const message: AnsiString);
 begin
-if (Pointer(@MainLog)<>nil) then MainLog(message);
+  if (Pointer(@MainLog) <> nil) then
+    MainLog(message);
 end;
 
 initialization
 {$IFDEF USE_LOG}
-  MainLog:=___ocl_insite_log_writeln;
+  MainLog := ___ocl_insite_log_writeln;
 {$ENDIF}
 {$IFDEF DEFAULT_NVIDIA}
-  Default_Platform:=NVIDIA_PLATFORM;
+  Default_Platform := NVIDIA_PLATFORM;
 {$ELSE}
   {$IFDEF DEFAULT_ATI}
-     Default_Platform:=ATI_PLATFORM;
+     Default_Platform := ATI_PLATFORM;
   {$ENDIF}
 {$ENDIF}
 

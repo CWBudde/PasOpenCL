@@ -26,7 +26,7 @@ unit MainUnit;
 
 interface
 
-{-$DEFINE GL_INTEROP}
+{$DEFINE GL_INTEROP}
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, ExtCtrls,
@@ -57,11 +57,11 @@ type
     FTranslateZ: TCL_float;
     FAnim: TCL_float;
 
-    FMouseOldX, FMouseOldy: Integer;
+    FMouseOldX, FMouseOldY: Integer;
     FMouseButtons: Integer;
 
     procedure InitGL;
-    procedure IdleHandler(Sender : TObject; var Done : Boolean);
+    procedure IdleHandler(Sender: TObject; var Done: Boolean);
     procedure Render;
     procedure CreateVBO(const VBO: PGLuint);
     procedure DeleteVBO(const VBO: PGLuint);

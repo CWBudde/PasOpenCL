@@ -528,9 +528,9 @@ begin
 end;
 
 {// Osak Alexey for 64 bit value
-function IntToStr( Value : Integer ) : AnsiString;
+function IntToStr(Value: Integer): AnsiString;
 begin
-  Str( Value, Result );
+  Str(Value, Result);
 end;
 }
 
@@ -2111,20 +2111,22 @@ destructor TDCLDevice.Destroy;
 begin
   FreeAndNil(FContext);
   SetLength(FExtensions, 0);
-  FExtensionsString  := '';
-  FOpenCLCVersion  := '';
-  FDriverVersion  := '';
-  FName  := '';
-  FVendor  := '';
-  FVersion  := '';
-  FProfile  := '';
+  FExtensionsString := '';
+  FOpenCLCVersion := '';
+  FDriverVersion := '';
+  FName := '';
+  FVendor := '';
+  FVersion := '';
+  FProfile := '';
   inherited;
 end;
 
 function TDCLDevice.GetExtensions(const Index: TSize_t): AnsiString;
 begin
-  if Index<FExtensionsCount then Result := FExtensions[Index]
-  else Result := '';
+  if Index < FExtensionsCount then
+    Result := FExtensions[Index]
+  else
+    Result := '';
 end;
 
 function TDCLDevice.IsPresentExtension(
@@ -2557,7 +2559,7 @@ begin
     {$ENDIF}
     FExecuteTime := EndTime-StartTime;
     {$IFDEF LOGGING}
-      WriteLog('EnqueueReadBuffer time : ' + IntToStr(FExecuteTime) + ' ns;');
+      WriteLog('EnqueueReadBuffer time: ' + IntToStr(FExecuteTime) + ' ns;');
     {$ENDIF}
   {$ENDIF}
 end;
@@ -2594,7 +2596,7 @@ begin
     {$ENDIF}
     FExecuteTime := EndTime-StartTime;
     {$IFDEF LOGGING}
-      WriteLog('clEnqueueReadImage time : ' + IntToStr(FExecuteTime) + ' ns;');
+      WriteLog('clEnqueueReadImage time: ' + IntToStr(FExecuteTime) + ' ns;');
     {$ENDIF}
   {$ENDIF}
 
@@ -2633,7 +2635,7 @@ begin
     {$ENDIF}
     FExecuteTime := EndTime-StartTime;
     {$IFDEF LOGGING}
-      WriteLog('clEnqueueWriteImage time : ' + IntToStr(FExecuteTime) + ' ns;');
+      WriteLog('clEnqueueWriteImage time: ' + IntToStr(FExecuteTime) + ' ns;');
     {$ENDIF}
   {$ENDIF}
 end;
@@ -2666,7 +2668,7 @@ begin
     {$ENDIF}
     FExecuteTime := EndTime - StartTime;
     {$IFDEF LOGGING}
-      WriteLog('clEnqueueWriteBuffer time : ' + IntToStr(FExecuteTime) + ' ns;');
+      WriteLog('clEnqueueWriteBuffer time: ' + IntToStr(FExecuteTime) + ' ns;');
     {$ENDIF}
   {$ENDIF}
 end;

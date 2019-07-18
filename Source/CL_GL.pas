@@ -112,7 +112,7 @@ type
   TclCreateFromGLBuffer = function (
                                       context: Pcl_context;                     (* context *)
                                       flags: Tcl_mem_flags;                     (* flags *)
-                                      bufobj:  GLuint;                          (* bufobj *)
+                                      bufobj: GLuint;                          (* bufobj *)
                                       errcode_ret: PInteger                     (* errcode_ret *)
                                       ): PCL_mem;
                                       {$IFDEF CDECL}cdecl{$ELSE}stdcall{$ENDIF};
@@ -228,17 +228,17 @@ type
 {$ENDIF}
 var
 {$IFDEF CL_VERSION_1_0}
-  clCreateFromGLBuffer:       TclCreateFromGLBuffer;
+  clCreateFromGLBuffer: TclCreateFromGLBuffer;
   {$IFDEF CL_USE_DEPRECATED_OPENCL_1_1_APIS}
-    clCreateFromGLTexture2D:    TclCreateFromGLTexture2D;
-    clCreateFromGLTexture3D:    TclCreateFromGLTexture3D;
+    clCreateFromGLTexture2D: TclCreateFromGLTexture2D;
+    clCreateFromGLTexture3D: TclCreateFromGLTexture3D;
   {$ENDIF}
   clCreateFromGLRenderbuffer: TclCreateFromGLRenderbuffer;
-  clGetGLObjectInfo:          TclGetGLObjectInfo;
-  clGetGLTextureInfo:         TclGetGLTextureInfo;
-  clEnqueueAcquireGLObjects:  TclEnqueueAcquireGLObjects;
-  clEnqueueReleaseGLObjects:  TclEnqueueReleaseGLObjects;
-  clGetGLContextInfoKHR:      TclGetGLContextInfoKHR;
+  clGetGLObjectInfo: TclGetGLObjectInfo;
+  clGetGLTextureInfo: TclGetGLTextureInfo;
+  clEnqueueAcquireGLObjects: TclEnqueueAcquireGLObjects;
+  clEnqueueReleaseGLObjects: TclEnqueueReleaseGLObjects;
+  clGetGLContextInfoKHR: TclGetGLContextInfoKHR;
 {$ENDIF}
 
 {$IFDEF CL_VERSION_1_2}
